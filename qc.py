@@ -25,6 +25,8 @@ Some notes from Andreas:
                 -Special class for fock states?
                 -Special qubit class that implements general
 
+            -Do we need something to convert integers to binary 
+
 """
 
 import numpy as np
@@ -72,7 +74,7 @@ class QuantumRegister():
         element is the second state.
         """"
         self.n_states = 2 ** n_qubits
-        self.qubits = np.zeros(self.n_state, dtype = complex)
+        self.qubits = np.zeros(self.n_states, dtype = complex)
         qubits[0] = 1.0
 
 
@@ -89,8 +91,19 @@ class QuantumRegister():
         #Square the amplitudes
         #use np.random.choice and set probablilty to the probabiliy amplitudes calculated before
 
+        #Calculate probabilites
+        probabilities = np.zeros(n_states)
+        for i in range(1, n_states):
+                probabilites[i] = norm( self.qubits[i] )**2
 
-    def __mult__(self, other):
+        #Choose a random state
+        state = np.random.choice(self.n_states, probabilities)
+
+        return state
+
+
+
+        def __mult__(self, other):
         """
         Tensor prodcut between the two quantum registers. Outputs a new quantum
         register.
