@@ -173,7 +173,7 @@ class Operator():
         if isinstance(rhs, QuantumRegister):
             #Apply operator to quantum register
             #check if number of states is the same
-            if rhs.n_states != self.n_states:
+            if rhs.n_qubits != self.size:
                 print('Number of states do not correspnd!')
                 return 0
 
@@ -181,16 +181,16 @@ class Operator():
             result = QuantumRegister(rhs.n_qubits)
 
             #Calculate result
-            result.qubits = np.dot(self.matrix, quant_register.qubits )
+            result.qubits = np.dot(self.matrix, rhs.qubits )
 
             #Normalise result
             result.normalise()
             return result
 
-        if isinstance(rhs, Operator)
+        if isinstance(rhs, Operator):
             #matrix multiplication between the two operators. Return another operator
 
-            if rh.n_states != self.n_states:
+            if rhs.size != self.size:
                 print('Number of states does not correspond')
                 return 0
 
@@ -200,16 +200,26 @@ class Operator():
 
             return result
 
+    def dag(self):
+        """
+        Returns the hermitian transpose of the operator
+        """
+
+        herm_transpose = Operator(self.size)
+        herm_tranpose.matrix = self.matrix.getH()
+
+        return herm_tranpose
 
 
 
-class Hadamard():
+
+class Hadamard(Operator):
     """
     Class that defines hadamard gate.
     """
 
     def __init__(self, size=1):
-        #super(Hadamard, self).__init__(size)
+        super(Hadamard, self).__init__(size)
 
         #Define "base" hadamard matrix for one qubit and correponding sparse matrix
         self.base = 1/np.sqrt(2)*np.array( [ [1 , 1], [1 ,-1] ] )
@@ -232,25 +242,25 @@ class Hadamard():
             return result
 
 
-    def apply(self, quant_register):
-        """
-        Apply hadamard gate to given quantum register
-
-        Vary number of inputs? If two inputs are submitted, then the first one
-        automatically becomes a control qubit?
-        """
-
-        #Initialize resulting quantum register
-        result = QuantumRegister( quant_register.n_qubits )
-
-        #Calculate result
-        result.qubits = np.dot(self.matrix, quant_register.qubits )
-
-        #Normalise result
-        result.normalise()
-
-
-        return result
+    # def apply(self, quant_register):
+    #     """
+    #     Apply hadamard gate to given quantum register
+    #
+    #     Vary number of inputs? If two inputs are submitted, then the first one
+    #     automatically becomes a control qubit?
+    #     """
+    #
+    #     #Initialize resulting quantum register
+    #     result = QuantumRegister( quant_register.n_qubits )
+    #
+    #     #Calculate result
+    #     result.qubits = np.dot(self.matrix, quant_register.qubits )
+    #
+    #     #Normalise result
+    #     result.normalise()
+    #
+    #
+    #     return result
 
 class CHadamard():
     """
@@ -323,6 +333,9 @@ print(ground_2.qubits)
 #matrix multiplication between
 test = H_2.apply(ground_2)
 print(test.qubits)
+
+test2 = H_2*ground_2
+print(test2.qubits)
 
 
 c_H = CHadamard(1,3)
