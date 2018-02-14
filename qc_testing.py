@@ -6,15 +6,13 @@ Quantum Computing Project
 Definition of abstract classes for qubits and quantum registers
 
 Some notes from Andreas:
--Not yet sure whih python data type to use for ket and bra vectors (probably numpy array)
 -This file need to contain:
-    -Abstract clss definition for qubit (ket vector)
-        -Define both bra and ket (maybe add class parameter)
         -Operations between qubits
             -Tensor add
             -Tensor product
             -Measurement
             -Some sort of interface for matrix operations
+            -Bitwise operations between quantum registers?
             -Visualization?
 
             Loosely based on the QObj object found in QuTip (Quantum Toolbox in Python)
@@ -206,9 +204,9 @@ class Operator():
         """
 
         herm_transpose = Operator(self.size)
-        herm_tranpose.matrix = self.matrix.getH()
+        herm_transpose.matrix = self.matrix.conjugate()
 
-        return herm_tranpose
+        return herm_transpose
 
 
 
@@ -262,16 +260,17 @@ class Hadamard(Operator):
     #
     #     return result
 
-class CHadamard():
+class CHadamard(Operator):
     """
     Class that defines controlled hadamard gate. Takes as inputs number of control
     qubits and number of target qubits. And builds a sparse matrix
     """
 
     def __init__(self, n_control, n_target):
+
         self.n_control = n_control
         self.n_target = n_target
-        self.n_states = 2**(n_control+n_target)#######
+        self.n_states = 2**(n_control+n_target)
         self.matrix = self.__create_sparse_matrix()
 
 
@@ -329,16 +328,15 @@ print(H_2.matrix.shape)
 ground_2 = QuantumRegister(1)
 print(ground_2.qubits)
 
-
-#matrix multiplication between
-test = H_2.apply(ground_2)
-print(test.qubits)
-
 test2 = H_2*ground_2
 print(test2.qubits)
 
+H_2_dag = H_2.dag()
+print(H_2_dag.matrix)
 
 c_H = CHadamard(1,3)
 print(c_H.matrix.toarray())
 
+gound_3 = QuantumRegister(3)
+test = c_H*gound_3
 print(np.zeros( (5,5) ))
