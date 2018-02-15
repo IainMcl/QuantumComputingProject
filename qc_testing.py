@@ -8,10 +8,6 @@ Definition of abstract classes for qubits and quantum registers
 Some notes from Andreas:
 -This file need to contain:
         -Operations between qubits
-            -Tensor add
-            -Tensor product
-            -Measurement
-            -Some sort of interface for matrix operations
             -Bitwise operations between quantum registers?
             -Visualization?
 
@@ -24,17 +20,16 @@ Some notes from Andreas:
             Scipy sparse matrix docs:
             https://docs.scipy.org/doc/scipy/reference/sparse.html
 
-            -Does this need to be an abstract class? Don't think so, since there's only
-            one type of qubit (as opposed to many different types of matrix operators )
-                -Special class for fock states?
-                -Special qubit class that implements general
 
             -Do we need something to convert integers to binary
 
     -Probably need a class for grover's iterate defined as child class of more
     general operator class?
-
+f######################################
     -Add method to check if state is normalised, if not, normalise
+    -Add special class for any type of control gate, that accepts a gate, Number
+    of control qubits and number of taget qubits as inputs
+    -Add get methods for matrices of operators and qubits
 
 """
 
@@ -42,47 +37,15 @@ import numpy as np
 from numpy.linalg import norm
 from scipy.sparse import coo_matrix, csc_matrix, lil_matrix, identity
 
-#this class might not be necessary
-class QuBit():
-
-    def __init__(self, n_states, state ):
-        """ Potential qubit parameters:
-            type: either bra or ket
-            state: in which state is the qubit in
-            dimensions: number of possible states the qubit can be in
-        """
-
-        #Definiton of variables that hold the total number of possible states
-        #and the current state
-        self.n_states = n_states
-        self.state = state
-
-
-
-
-    def __mul__(self, q2):
-        """
-        Overrides multiplication operator in the following way:
-        -Case 1: Two kets -> Tensor product
-        Outputs a new ket
-        -Case 2: Braket -> Dot product
-        Outputs a number
-        -Case 3: KetBra -> Operator
-        Output a matrix object (to be defined)
-        (is this feasible for large qubits)
-        """
-        pass
-
-
 class QuantumRegister():
+"""
+Quantum register class. The quantum register is saved as a complex
+numpy array. Each element of the array is the amplitude of the
+corresponding state, eg. the first element is the first state, the second
+element is the second state.
+"""
 
     def __init__(self, n_qubits):
-        """
-        Quantum register class. The quantum register is saved as a complex
-        numpy array. Each element of the array is the amplitude of the
-        corresponding state, eg. the first element is the first state, the second
-        element is the second state.
-        """
         self.n_states = 2 ** n_qubits
         self.n_qubits = n_qubits
         self.qubits = np.zeros(self.n_states, dtype = complex)
@@ -92,7 +55,10 @@ class QuantumRegister():
 
     def set_qubit(self, a ,b):
         """
-        Set qubit of state a to value b
+        Set qubit of state a to value b. Not sure how to do this right now.
+        Maybe instead of having a method, an extra argument can be passed to
+        the class constructor telling it in which states we wish our state
+        function to be...
         """
         pass
 
@@ -137,9 +103,9 @@ class QuantumRegister():
         """
         Normalise coefficients of qubits array
         """
+        print(type(self.qubits))
         qubits_normalised = self.qubits/norm(self.qubits)
         self.qubits = qubits_normalised
-
 
 
 class Operator():
@@ -150,17 +116,40 @@ class Operator():
         -i,j: row nad column number
         -Mij: of the operator at that row and column
 
-    How to define the application of an operator to a quantum state? Method or override
-    multiplication.
 
-    Should there be an is_sparce property passed to the opeartor, with some default
-    value set?
+    For now the operator is saved as a dense matrix. Special cases like control
+    gates will be saved as sparse matrices.
     """
 
-    def __init__(self, size):
-        #Define number of columns and number of rows
-        self.size = size
-        self.sparce_matrix = coo_matrix(np.zeros( ( size,size) ) )
+    def __init__(self, n_qubits, base=np.zeros( (2,2) ) ):
+        """
+        Class initialiser. The class accepts two inputs:
+            -n_qubits: Number of qubits on which this operator will operate.
+            -base: The "base" 2*2 matrix of the operator.
+
+        [Note that fow now we assume that every operator has a unitary "base"
+        and that there is no need "native" binary operators (such as SWAP gate)]
+        """
+        self.n_qubits = n_qubits
+        self.size = 2**n_qubits
+        self.base = base
+        self.matrix = self.__create_full_matrix(self.n_qubits)
+        #self.sparce_matrix = coo_matrix(np.zeros( ( self.size, self.size) ) )  not sure that we need thsi right now
+
+
+    def __create_full_matrix(self,n_qubits):
+        """
+        Create matrix by taking successive tensor producs between for the total
+        number of qubits.
+        """
+        result = self.base
+
+        if n_qubits == 1 :
+            return result
+        else:
+            for i in range(n_qubits-1):
+                result = np.kron(result,self.base)
+            return result
 
 
     def __mul__(self, rhs):
@@ -171,7 +160,7 @@ class Operator():
         if isinstance(rhs, QuantumRegister):
             #Apply operator to quantum register
             #check if number of states is the same
-            if rhs.n_qubits != self.size:
+            if rhs.n_qubits != self.n_qubits:
                 print('Number of states do not correspnd!')
                 return 0
 
@@ -196,6 +185,7 @@ class Operator():
             result = Operator(self.size)
             result.matrix = np.dot(self.matrix, rhs.matrix)
 
+
             return result
 
     def dag(self):
@@ -203,7 +193,7 @@ class Operator():
         Returns the hermitian transpose of the operator
         """
 
-        herm_transpose = Operator(self.size)
+        herm_transpose = Operator(self.n_qubits)
         herm_transpose.matrix = self.matrix.conjugate()
 
         return herm_transpose
@@ -213,31 +203,14 @@ class Operator():
 
 class Hadamard(Operator):
     """
-    Class that defines hadamard gate.
+    Class that defines hadamard gate. This class extends the Operator class. For
+    now it simply calls the parent classes and passes to it the base argument.
     """
 
-    def __init__(self, size=1):
-        super(Hadamard, self).__init__(size)
-
+    def __init__(self, n_qubits=1):
         #Define "base" hadamard matrix for one qubit and correponding sparse matrix
         self.base = 1/np.sqrt(2)*np.array( [ [1 , 1], [1 ,-1] ] )
-        self.base_sparse = coo_matrix(self.base)
-        self.matrix = self.__create_full_matrix(size)
-
-    def __create_full_matrix(self,size):
-        """
-        Create sparse matrix by calculating kronecker product of base matrix with
-        itself
-        """
-        result = self.base
-
-        if size == 1 :
-            return result
-        else:
-            for i in range(size-1):
-                result = np.kron(result,self.base)
-
-            return result
+        super(Hadamard, self).__init__(n_qubits,self.base)
 
 
     # def apply(self, quant_register):
@@ -270,7 +243,8 @@ class CHadamard(Operator):
 
         self.n_control = n_control
         self.n_target = n_target
-        self.n_states = 2**(n_control+n_target)
+        self.n_qubits= self.n_target + self.n_control
+        self.size = 2**(n_control+n_target)
         self.matrix = self.__create_sparse_matrix()
 
 
@@ -286,11 +260,11 @@ class CHadamard(Operator):
         hadamard_matrix = lil_matrix( Hadamard(self.n_target).matrix )
 
         #Create full sparse identity matrix
-        sparse_matrix = identity(self.n_states, format='lil')
+        sparse_matrix = identity(self.size, format='lil')
 
         #"Put" dense hadamard matrix in sparse matrix
         target_states = 2**self.n_target
-        sub_matrix_index = self.n_states-target_states
+        sub_matrix_index = self.size-target_states
         sparse_matrix[sub_matrix_index: , sub_matrix_index: ] = hadamard_matrix
 
         #Convert to csc format
@@ -318,25 +292,30 @@ class CHadamard(Operator):
 
 
 
-########testing stuff
+########testing stuff##############
+if __name__ == '__main__':
+    #Create 2-qubit hadamard gate
+    H_2 = Hadamard(2)
+    print(H_2.matrix)
 
-#Create 2-qubit hadamard gate
-H_2 = Hadamard(1)
-print(H_2.matrix.shape)
+    #Create a register with 2 qubits at the ground state
+    ground_2 = QuantumRegister(2)
+    print(ground_2.qubits)
 
-#Create a register with 2 qubits at the ground state
-ground_2 = QuantumRegister(1)
-print(ground_2.qubits)
+    test2 = H_2*ground_2
+    print(test2.qubits)
 
-test2 = H_2*ground_2
-print(test2.qubits)
+    H_2_dag = H_2.dag()
+    print(H_2_dag.matrix)
 
-H_2_dag = H_2.dag()
-print(H_2_dag.matrix)
+    c_H = CHadamard(1,2)
+    print(c_H.matrix.toarray())
 
-c_H = CHadamard(1,3)
-print(c_H.matrix.toarray())
+    """
+    Applying a contrlled gate to a qubit doesn't work right now and I'm not
+    sure why. As far as I can tell, python is being weird. Please help.
+    """
 
-gound_3 = QuantumRegister(3)
-test = c_H*gound_3
-print(np.zeros( (5,5) ))
+    gound_3 = QuantumRegister(3)
+    test = c_H*gound_3
+    print(np.zeros( (5,5) ))
