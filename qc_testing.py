@@ -38,12 +38,12 @@ from numpy.linalg import norm
 from scipy.sparse import coo_matrix, csc_matrix, lil_matrix, identity
 
 class QuantumRegister():
-"""
-Quantum register class. The quantum register is saved as a complex
-numpy array. Each element of the array is the amplitude of the
-corresponding state, eg. the first element is the first state, the second
-element is the second state.
-"""
+    """
+    Quantum register class. The quantum register is saved as a complex
+    numpy array. Each element of the array is the amplitude of the
+    corresponding state, eg. the first element is the first state, the second
+    element is the second state.
+    """
 
     def __init__(self, n_qubits):
         self.n_states = 2 ** n_qubits
@@ -81,7 +81,7 @@ element is the second state.
 
 
 
-    def __mult__(self, other):
+    def __mul__(self, other):
         """
         Tensor prodcut between the two quantum registers. Outputs a new quantum
         register.
@@ -93,7 +93,7 @@ element is the second state.
         result_normalized = temp_result/norm(temp_result)
 
         #Creaete quantum register object for result
-        qmr_result = QuantumRegister(self.n_qubits*other.n_qubits )
+        qmr_result = QuantumRegister(self.n_qubits+other.n_qubits )
         qmr_result.qubits = result_normalized
 
         return qmr_result
@@ -104,6 +104,7 @@ element is the second state.
         Normalise coefficients of qubits array
         """
         print(type(self.qubits))
+        print(type( norm(self.qubits)))
         qubits_normalised = self.qubits/norm(self.qubits)
         self.qubits = qubits_normalised
 
@@ -167,8 +168,13 @@ class Operator():
             #Otherwise return a new quantum register
             result = QuantumRegister(rhs.n_qubits)
 
-            #Calculate result
-            result.qubits = np.dot(self.matrix, rhs.qubits )
+            #Calculate result. Check if matrix is sparse or not first. If sparse
+            #use special sparse dot product csc_matrix.dot
+            if isinstance(self.matrix, np.ndarray):
+                result.qubits = np.dot(self.matrix, rhs.qubits )
+
+            elif isinstance(self.matrix, csc_matrix):
+                result.qubits = self.matrix.dot(rhs.qubits)
 
             #Normalise result
             result.normalise()
@@ -233,6 +239,8 @@ class Hadamard(Operator):
     #
     #     return result
 
+
+
 class CHadamard(Operator):
     """
     Class that defines controlled hadamard gate. Takes as inputs number of control
@@ -292,30 +300,40 @@ class CHadamard(Operator):
 
 
 
+
+
 ########testing stuff##############
 if __name__ == '__main__':
-    #Create 2-qubit hadamard gate
-    H_2 = Hadamard(2)
-    print(H_2.matrix)
+    #Create 2 qubit hadamard gate
+    H2 = Hadamard(2)
 
-    #Create a register with 2 qubits at the ground state
-    ground_2 = QuantumRegister(2)
-    print(ground_2.qubits)
+    #Create 2 qubit quantum register in ground state
+    target2 = QuantumRegister(2)
 
-    test2 = H_2*ground_2
-    print(test2.qubits)
+    #Apply hadamard gate to target state
+    result_1 = H2*target2
+    #Print result
+    print(result_1.qubits)
 
-    H_2_dag = H_2.dag()
-    print(H_2_dag.matrix)
+    #Define control qubit and apply hadamard to it
+    control1 = QuantumRegister(1)
+    control1_superposition = Hadamard(1)*control1
 
+    #Print result
+    print(control1_superposition.qubits)
+
+    #Define controlled hadamard gate with 1 control and 2 targets
     c_H = CHadamard(1,2)
-    print(c_H.matrix.toarray())
 
-    """
-    Applying a contrlled gate to a qubit doesn't work right now and I'm not
-    sure why. As far as I can tell, python is being weird. Please help.
-    """
+    #Create new quantum register with control and target qubits
+    control_target = control1_superposition*target2
 
-    gound_3 = QuantumRegister(3)
-    test = c_H*gound_3
-    print(np.zeros( (5,5) ))
+    #Print new quantum register
+    print(control_target.qubits)
+
+#Apply controlled hadamard gate to this quantum register
+print(control_target.n_states )
+result = c_H*control_target
+
+#Print result
+print(result.qubits)
