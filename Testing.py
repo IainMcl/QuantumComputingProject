@@ -9,7 +9,7 @@ import numpy as np
 import math
 from qc import QuantumRegister, Hadamard,CHadamard, Oracle
 class QCTesting(unittest.TestCase):
-    def test_mul_Haddamard(self):
+    def test_mul_Hadamard(self):
         reg1 = QuantumRegister(1)
         H = Hadamard()
         applied = np.asmatrix((H*reg1).qubits)
@@ -17,4 +17,11 @@ class QCTesting(unittest.TestCase):
         expected = np.dot(H_test,reg1.qubits)
         np.testing.assert_almost_equal(expected.tolist(),applied.tolist())
 
+
+    def test_mul_CHadamard(self):
+        reg1 = QuantumRegister(2)
+        CH = CHadamard(1,1)
+        result = (CH*reg1).qubits
+        expected= np.array((1,0,0,0))
+        self.assertEqual(result.tolist(),expected.tolist())
 unittest.main()
