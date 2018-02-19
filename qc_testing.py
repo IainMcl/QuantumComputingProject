@@ -25,17 +25,24 @@ Some notes from Andreas:
 
     -Probably need a class for grover's iterate defined as child class of more
     general operator class?
-f######################################
+##################################################
     -Add method to check if state is normalised, if not, normalise
     -Add special class for any type of control gate, that accepts a gate, Number
-    of control qubits and number of taget qubits as inputs
+     of control qubits and number of taget qubits as inputs
     -Add get methods for matrices of operators and qubits
+    -Add class for unitary operator (H*R*H*R)
+    -
 
+##################################################
+The way the implementation works right now is that the gates are implemented
+as Operator class objects. Quantum circuits can be defined as functions that
+"string" different gates together
 """
 
 import numpy as np
 from numpy.linalg import norm
-from scipy.sparse import coo_matrix, csc_matrix, lil_matrix, identity
+from scipy.sparse import coo_matrix, csc_matrix, lil_matrix, identity,kron
+from math import pi
 
 class QuantumRegister():
     """
@@ -45,7 +52,7 @@ class QuantumRegister():
     element is the second state.
     """
 
-    def __init__(self, n_qubits):
+    def __init__(self, n_qubits=1):
         self.n_states = 2 ** n_qubits
         self.n_qubits = n_qubits
         self.qubits = np.zeros(self.n_states, dtype = complex)
@@ -108,6 +115,11 @@ class QuantumRegister():
         qubits_normalised = self.qubits/norm(self.qubits)
         self.qubits = qubits_normalised
 
+    def select(self,a,b):
+        """
+        Return quantum register with comprising of the ath to bth qubits
+        """
+
 
 class Operator():
     """
@@ -133,24 +145,42 @@ class Operator():
         """
         self.n_qubits = n_qubits
         self.size = 2**n_qubits
-        self.base = base
-        self.matrix = self.__create_full_matrix(self.n_qubits)
+        self.matrix = self.__create_full_matrix(self.n_qubits, base)
         #self.sparce_matrix = coo_matrix(np.zeros( ( self.size, self.size) ) )  not sure that we need thsi right now
 
 
-    def __create_full_matrix(self,n_qubits):
+    def __create_full_matrix(self,n_qubits, base):
         """
         Create matrix by taking successive tensor producs between for the total
         number of qubits.
         """
-        result = self.base
+        result = lil_matrix(base)
 
         if n_qubits == 1 :
+            result = csc_matrix(result)
+
             return result
         else:
             for i in range(n_qubits-1):
-                result = np.kron(result,self.base)
+                result = kron(result, base)
+
+            result = csc_matrix(result)
             return result
+
+
+    def dot(self, other):
+        """
+        Matrix multiplication between the two operators
+        """
+        if other.size != self.size:
+            print('Number of states does not correspond')
+            return 0
+
+        #Otherwise take dot product of
+        result = Operator(self.n_qubits)
+        result.matrix = self.matrix.dot(other.matrix)
+
+        return result
 
 
     def __mul__(self, rhs):
@@ -181,17 +211,9 @@ class Operator():
             return result
 
         if isinstance(rhs, Operator):
-            #matrix multiplication between the two operators. Return another operator
-
-            if rhs.size != self.size:
-                print('Number of states does not correspond')
-                return 0
-
-            #Otherwise take dot product of matrices
-            result = Operator(self.size)
-            result.matrix = np.dot(self.matrix, rhs.matrix)
-
-
+            #Tensor product between the two operators
+            result = Operator(self.n_qubits, rhs.n_qubits)
+            result.matrix = kron(self.matrix, rhs.matrix)
             return result
 
     def dag(self):
@@ -200,11 +222,9 @@ class Operator():
         """
 
         herm_transpose = Operator(self.n_qubits)
-        herm_transpose.matrix = self.matrix.conjugate()
+        herm_transpose.matrix = self.matrix.getH()
 
         return herm_transpose
-
-
 
 
 class Hadamard(Operator):
@@ -212,7 +232,6 @@ class Hadamard(Operator):
     Class that defines hadamard gate. This class extends the Operator class. For
     now it simply calls the parent classes and passes to it the base argument.
     """
-
     def __init__(self, n_qubits=1):
         #Define "base" hadamard matrix for one qubit and correponding sparse matrix
         self.base = 1/np.sqrt(2)*np.array( [ [1 , 1], [1 ,-1] ] )
@@ -239,12 +258,65 @@ class Hadamard(Operator):
     #
     #     return result
 
+class PhaseShift(Operator):
+    """
+    Implementation of phase shift gate.
+    """
+    def __init__(self, phi, n_qubits=1):
+        self.base = np.array( [ [ 1, 0], [ 0, np.exp( 1j*phi ) ] ])
+        super(PhaseShift, self).__init__(n_qubits, self.base)
 
+class CUGate(Operator):
+    """
+    Class that implements a controlled U gate
+    """
+
+    def __init__(self, base, n_control, n_target=1):
+        """
+        Class accepts the base matrix U, number of control qubits and number of
+        target qubits.
+        Inputs:
+        base: matrix/operator
+        n_control: number of control qubits
+        n_target: number of target qubits (has been set to 1 as default)
+        """
+        self.n_control = n_control
+        self.n_target = n_target
+        self.n_qubits = self.n_target + self.n_control
+        self.size = 2**(self.n_control + self.n_target)
+        self.matrix = self.__create_sparse_matrix(base)
+
+    def __create_sparse_matrix(self,base):
+        """
+        Creates spasrse matrix according to how many target qubits we have.
+        Matrix is constructed using the 'lil' format, which is better for
+        incremental construction of sparse matrices and is then converted
+        to 'csc' format, which is better for operations between matrices
+        """
+
+        #Create sparse hadamard matrix
+        base_matrix = lil_matrix(base.matrix)
+
+        #Create full sparse identity matrix
+        sparse_matrix = identity(self.size, format='lil')
+
+        #"Put" dense hadamard matrix in sparse matrix
+        target_states = 2**self.n_target
+        sub_matrix_index = self.size-target_states
+        sparse_matrix[sub_matrix_index: , sub_matrix_index: ] = base_matrix
+
+        #Convert to csc format
+        c_gate = csc_matrix(sparse_matrix)
+
+        return c_gate
 
 class CHadamard(Operator):
     """
     Class that defines controlled hadamard gate. Takes as inputs number of control
-    qubits and number of target qubits. And builds a sparse matrix
+    qubits and number of target qubits. And builds a sparse matrix.
+    ############################
+    This class may not be necessary anymore
+    ###########################
     """
 
     def __init__(self, n_control, n_target):
@@ -280,26 +352,105 @@ class CHadamard(Operator):
 
         return controlled_hadamard
 
-    def apply(self, quant_register):
+class Oracle(Operator):
+    """
+    Class that implements the oracle. This gate takes an n qubits as
+    input and flips it if f(x) = 1, otherwise it leaves it as the same.
+    """
+
+    def __init__(self, n_qubits=1, x=0):
         """
-        Applies controlled-Hadamard gate to given quantum register and returns
-        the result
+        Class constructor.
+        Inputs:
+        n_states: Total number of n_states
+        x: state that is fliped.
         """
-
-        #Initialise result qunatum register
-        result = QuantumRegister(quant_register.n_qubits)
-
-        #Calculate result
-        result.qubits = np.dot(self.matrix, quant_register.qubits)
-
-        #Normalise result
-        result.normalise()
-
-        return result
+        self.n_states = 2**n_qubits
+        self.n_qubits = n_qubits
+        #Operator matrix will be identity with a -1 if the xth,xth element
+        self.matrix = identity(self.n_states, format='csc')
+        self.matrix[x,x] = -1
 
 
+def init_qubit(theta,phi):
+    """
+    Initialises a qubit to the following state:
+    |psi> = cos(theta) * |0> + exp(i*phi) * |1>
+    """
+theta = pi/4
+phi = pi
+h_gate = Hadamard()
+r_theta = PhaseShift(2 * theta)
+r_phi = PhaseShift(pi/2 + phi )
+initial_state = QuantumRegister()
+print(h_gate.dot(r_theta).matrix.toarray())
+
+step1 = h_gate.dot(r_theta)
+step2 = h_gate.dot(r_phi)
+u_gate = step1.dot(step2)
+print(u_gate.n_qubits)
+
+    return u_gate*initial_state
+
+test1 = init_qubit(pi/4, pi)
+test = u_gate*QuantumRegister()
+
+def deutsch(oracle):
+    """
+    Implements deutsch's algortithm to determine whether the oracle passed is
+    balanced or not.
+    """
+    #Initialise both quantum registers
+    register1 = QuantumRegister()
+    register2 = QuantumRegister()
+
+    #Run algorithm
 
 
+
+def grover_search(oracle):
+    """
+    implements grover's search algorithm at the given quantum register and
+    oracle, for just one element. Will later be extedned to multiple elements.
+    Inputs:
+    quant_register:
+    oracle: oracle function that "tags" a qubit in the quantum register
+
+    Outputs:
+    measured_state: the state which the oracle tagged
+    """
+
+    #Initialise quantum state and set it in superposition
+    n = oracle.n_qubits
+    register1 = QuantumRegister(n)
+    h_gate = Hadamard(n)
+    psi = h_gate * psi
+    oracle_0 = Oracle()
+    I = Operator(1, np.eye(2))
+    resgiter2 = QuantumRegister()
+    register.qubits = 1/np.sqrt(2)*np.array( [ 1, -1]) #will be done through unitary gate in the future: 1/sqrt(2) * (|0> - |1>)
+    #Initialise grover's itearate
+    c_fk = CUGate( oracle, n)
+    c_f0 = CUGate( oracle_0, n)
+
+    term1 = c_fk.dot(h_gate*I)
+    term2 = c_f0.dot(h_gate*I)
+    grover_iterate = term1.dot(term2)
+    #based on first paper for grover's iterate
+
+
+    #for loop for grover search. At each iteration, apply grover's diffucion operator
+
+    #After for loop, perform measurement
+
+    k = psi.measure()
+
+    pass
+
+#testing grover search
+oracle = Oracle(3,2)
+
+k = grover_search(oracle)
 
 
 ########testing stuff##############
@@ -324,6 +475,11 @@ if __name__ == '__main__':
 
     #Define controlled hadamard gate with 1 control and 2 targets
     c_H = CHadamard(1,2)
+    h1 = Hadamard()
+    print(h1.matrix)
+    c_u = CUGate(h1,2)
+
+    print(c_u.matrix.toarray())
 
     #Create new quantum register with control and target qubits
     control_target = control1_superposition*target2
@@ -331,9 +487,21 @@ if __name__ == '__main__':
     #Print new quantum register
     print(control_target.qubits)
 
-#Apply controlled hadamard gate to this quantum register
-print(control_target.n_states )
-result = c_H*control_target
+    #Apply controlled hadamard gate to this quantum register
+    print(control_target.n_states )
+    result = c_H*control_target
 
-#Print result
-print(result.qubits)
+    #Print result
+    print(result.qubits)
+
+    I = Operator(2, np.eye(2))
+    print(I.matrix.toarray())
+
+    test = I * h1
+    print(test.matrix.toarray())
+
+    #Testing oracle operator
+    qubit1 = Hadamard(3) * QuantumRegister(3)
+    oracle = Oracle(3,2)
+    #wooo it works
+    print((oracle*qubit1).qubits)
