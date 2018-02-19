@@ -296,7 +296,23 @@ class CHadamard(Operator):
         result.normalise()
 
         return result
-
+    
+    
+class Oracle(Operator):
+    def __init__(desired_state, n_qubits = 1):
+        self.desired_state = desired_state
+        super().__init__(self,n_qubits)
+         
+         
+    def __mul__(self, rhs):
+        if not isinstance(rhs, QuantumnRegister):
+            raise TypeError("Can only apply an oracle operator to a quantumn register not another operator")
+        else:
+            rhs[self.desired_state] *= -1
+            
+        return self
+            
+    
 
 
 
