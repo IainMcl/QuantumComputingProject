@@ -168,21 +168,6 @@ class Operator():
             return result
 
 
-    def dot(self, other):
-        """
-        Matrix multiplication between the two operators
-        """
-        if other.size != self.size:
-            print('Number of states does not correspond')
-            return 0
-
-        #Otherwise take dot product of
-        result = Operator(self.n_qubits)
-        result.matrix = self.matrix.dot(other.matrix)
-
-        return result
-
-
     def __mul__(self, rhs):
         """
         Overides multiplication operator so that the product between two operators
@@ -211,10 +196,28 @@ class Operator():
             return result
 
         if isinstance(rhs, Operator):
-            #Tensor product between the two operators
-            result = Operator(self.n_qubits, rhs.n_qubits)
-            result.matrix = kron(self.matrix, rhs.matrix)
+            """
+            Matrix multiplication between the two operators
+            """
+            if rhs.size != self.size:
+                raise ValueError('Operators must of of the same size ')
+
+            #Otherwise take dot product of
+            result = Operator(self.n_qubits)
+            result.matrix = self.matrix.dot(rhs.matrix)
+
             return result
+
+
+    def __mod__(self, other):
+        """
+        Override mod operator to defint tensor product between operators
+        """
+        #Tensor product between the two operators
+        result = Operator(self.n_qubits, other.n_qubits)
+        result.matrix = kron(self.matrix, other.matrix)
+        return result
+
 
     def dag(self):
         """
@@ -377,23 +380,21 @@ def init_qubit(theta,phi):
     Initialises a qubit to the following state:
     |psi> = cos(theta) * |0> + exp(i*phi) * |1>
     """
-theta = pi/4
-phi = pi
-h_gate = Hadamard()
-r_theta = PhaseShift(2 * theta)
-r_phi = PhaseShift(pi/2 + phi )
-initial_state = QuantumRegister()
-print(h_gate.dot(r_theta).matrix.toarray())
+    theta = pi/4
+    phi = pi
+    h_gate = Hadamard()
+    r_theta = PhaseShift(2 * theta)
+    r_phi = PhaseShift(pi/2 + phi )
+    initial_state = QuantumRegister()
+    print(h_gate.dot(r_theta).matrix.toarray())
 
-step1 = h_gate.dot(r_theta)
-step2 = h_gate.dot(r_phi)
-u_gate = step1.dot(step2)
-print(u_gate.n_qubits)
+    step1 = h_gate.dot(r_theta)
+    step2 = h_gate.dot(r_phi)
+    u_gate = step1.dot(step2)
+    print(u_gate.n_qubits)
 
-    return u_gate*initial_state
+    pass
 
-test1 = init_qubit(pi/4, pi)
-test = u_gate*QuantumRegister()
 
 def deutsch(oracle):
     """
@@ -456,8 +457,15 @@ k = grover_search(oracle)
 ########testing stuff##############
 if __name__ == '__main__':
     #Create 2 qubit hadamard gate
-    H2 = Hadamard(2)
+    H2 = Hadamard(1)
+    print(H2.size)
+    print(H1.size)
+    H1 = Hadamard(1)
 
+    H3 = H1 * H2
+    print(H3.matrix.toarray())
+
+    print(type(H3))
     #Create 2 qubit quantum register in ground state
     target2 = QuantumRegister(2)
 
