@@ -53,7 +53,7 @@ class QuantumRegister():
     """
 
     def __init__(self, n_qubits=1):
-        self.n_states = 2 ** n_qubits
+        self.n_states = int(2 ** n_qubits)
         self.n_qubits = n_qubits
         self.qubits = np.zeros(self.n_states, dtype = complex)
         #Initialse quantum state at ground state.
@@ -77,16 +77,15 @@ class QuantumRegister():
         Outputs an integer representing the state measured (decimal system).
         """
         #Calculate probabilites
-        probabilities = np.zeros(n_states)
-        for i in range(1, n_states):
-                probabilites[i] = norm( self.qubits[i] )**2
+        probabilities = np.zeros(self.n_states)
+        for i in range(self.n_states):
+                probabilities[i] = norm( self.qubits[i] )**2
 
         #Choose a random state
-        state = np.random.choice(self.n_states, probabilities)
+        n = int(self.n_states)
+        state = np.random.choice(n, p=probabilities)
 
         return state
-
-
 
     def __mul__(self, other):
         """
@@ -119,7 +118,6 @@ class QuantumRegister():
         """
         Return quantum register with comprising of the ath to bth qubits
         """
-
 
 class Operator():
     """
@@ -177,8 +175,7 @@ class Operator():
             #Apply operator to quantum register
             #check if number of states is the same
             if rhs.n_qubits != self.n_qubits:
-                print('Number of states do not correspnd!')
-                return 0
+                raise ValueError('Number of states do not correspnd!')
 
             #Otherwise return a new quantum register
             result = QuantumRegister(rhs.n_qubits)
@@ -229,7 +226,6 @@ class Operator():
 
         return herm_transpose
 
-
 class Hadamard(Operator):
     """
     Class that defines hadamard gate. This class extends the Operator class. For
@@ -240,27 +236,6 @@ class Hadamard(Operator):
         self.base = 1/np.sqrt(2)*np.array( [ [1 , 1], [1 ,-1] ] )
         super(Hadamard, self).__init__(n_qubits,self.base)
 
-
-    # def apply(self, quant_register):
-    #     """
-    #     Apply hadamard gate to given quantum register
-    #
-    #     Vary number of inputs? If two inputs are submitted, then the first one
-    #     automatically becomes a control qubit?
-    #     """
-    #
-    #     #Initialize resulting quantum register
-    #     result = QuantumRegister( quant_register.n_qubits )
-    #
-    #     #Calculate result
-    #     result.qubits = np.dot(self.matrix, quant_register.qubits )
-    #
-    #     #Normalise result
-    #     result.normalise()
-    #
-    #
-    #     return result
-
 class PhaseShift(Operator):
     """
     Implementation of phase shift gate.
@@ -268,6 +243,13 @@ class PhaseShift(Operator):
     def __init__(self, phi, n_qubits=1):
         self.base = np.array( [ [ 1, 0], [ 0, np.exp( 1j*phi ) ] ])
         super(PhaseShift, self).__init__(n_qubits, self.base)
+
+class Not(Operator):
+    """Implements NOT gate
+    """
+    def __init__(self, n_qubits=1):
+        self.base = np.array( [ [0,1], [1,0] ])
+        super(Not, self).__init__(n_qubits, self.base)
 
 class CUGate(Operator):
     """
@@ -380,21 +362,16 @@ def init_qubit(theta,phi):
     Initialises a qubit to the following state:
     |psi> = cos(theta) * |0> + exp(i*phi) * |1>
     """
-    theta = pi/4
-    phi = pi
     h_gate = Hadamard()
     r_theta = PhaseShift(2 * theta)
     r_phi = PhaseShift(pi/2 + phi )
     initial_state = QuantumRegister()
-    print(h_gate.dot(r_theta).matrix.toarray())
 
-    step1 = h_gate.dot(r_theta)
-    step2 = h_gate.dot(r_phi)
-    u_gate = step1.dot(step2)
-    print(u_gate.n_qubits)
+    u_gate = r_phi * h_gate * r_theta * h_gate
 
-    pass
+    result = u_gate*initial_state
 
+    return result
 
 def deutsch(oracle):
     """
@@ -403,73 +380,75 @@ def deutsch(oracle):
     """
     #Initialise both quantum registers
     register1 = QuantumRegister()
-    register2 = QuantumRegister()
 
-    #Run algorithm
+    not_gate = Not()
+    h_gate = Hadamard()
+    register2 = h_gate * not_gate  * QuantumRegister()
 
+    #Pass register 1 through hadamard
+    register1 = h_gate * register1
+    register1 = oracle * register1
 
+    #Pass again through hadamard
+    final = h_gate * register1
 
-def grover_search(oracle):
-    """
-    implements grover's search algorithm at the given quantum register and
-    oracle, for just one element. Will later be extedned to multiple elements.
-    Inputs:
-    quant_register:
-    oracle: oracle function that "tags" a qubit in the quantum register
-
-    Outputs:
-    measured_state: the state which the oracle tagged
-    """
-
-    #Initialise quantum state and set it in superposition
-    n = oracle.n_qubits
-    register1 = QuantumRegister(n)
-    h_gate = Hadamard(n)
-    psi = h_gate * psi
-    oracle_0 = Oracle()
-    I = Operator(1, np.eye(2))
-    resgiter2 = QuantumRegister()
-    register.qubits = 1/np.sqrt(2)*np.array( [ 1, -1]) #will be done through unitary gate in the future: 1/sqrt(2) * (|0> - |1>)
-    #Initialise grover's itearate
-    c_fk = CUGate( oracle, n)
-    c_f0 = CUGate( oracle_0, n)
-
-    term1 = c_fk.dot(h_gate*I)
-    term2 = c_f0.dot(h_gate*I)
-    grover_iterate = term1.dot(term2)
-    #based on first paper for grover's iterate
+    #Perform measurement
+    k = final.measure()
+    return k
 
 
-    #for loop for grover search. At each iteration, apply grover's diffucion operator
 
-    #After for loop, perform measurement
 
-    k = psi.measure()
-
-    pass
-
-#testing grover search
-oracle = Oracle(3,2)
-
-k = grover_search(oracle)
+# def grover_search(oracle):
+#     """
+#     implements grover's search algorithm at the given quantum register and
+#     oracle, for just one element. Will later be extedned to multiple elements.
+#     Inputs:
+#     quant_register:
+#     oracle: oracle function that "tags" a qubit in the quantum register
+#
+#     Outputs:
+#     measured_state: the state which the oracle tagged
+#     """
+#
+#     #Initialise quantum state and set it in superposition
+#     n = oracle.n_qubits
+#     register1 = QuantumRegister(n)
+#     h_gate = Hadamard(n)
+#     psi = h_gate * psi
+#     oracle_0 = Oracle()
+#     I = Operator(1, np.eye(2))
+#     resgiter2 = QuantumRegister()
+#     register.qubits = 1/np.sqrt(2)*np.array( [ 1, -1]) #will be done through unitary gate in the future: 1/sqrt(2) * (|0> - |1>)
+#     #Initialise grover's itearate
+#     c_fk = CUGate( oracle, n)
+#     c_f0 = CUGate( oracle_0, n)
+#
+#     term1 = c_fk.dot(h_gate*I)
+#     term2 = c_f0.dot(h_gate*I)
+#     grover_iterate = term1.dot(term2)
+#     #based on first paper for grover's iterate
+#
+#
+#     #for loop for grover search. At each iteration, apply grover's diffucion operator
+#
+#     #After for loop, perform measurement
+#
+#     k = psi.measure()
+#
+#     pass
 
 
 ########testing stuff##############
 if __name__ == '__main__':
     #Create 2 qubit hadamard gate
-    H2 = Hadamard(1)
-    print(H2.size)
-    print(H1.size)
-    H1 = Hadamard(1)
+    H2 = Hadamard(2)
 
-    H3 = H1 * H2
-    print(H3.matrix.toarray())
-
-    print(type(H3))
     #Create 2 qubit quantum register in ground state
     target2 = QuantumRegister(2)
 
     #Apply hadamard gate to target state
+    H2 = Hadamard(2)
     result_1 = H2*target2
     #Print result
     print(result_1.qubits)
@@ -505,11 +484,9 @@ if __name__ == '__main__':
     I = Operator(2, np.eye(2))
     print(I.matrix.toarray())
 
-    test = I * h1
-    print(test.matrix.toarray())
-
     #Testing oracle operator
     qubit1 = Hadamard(3) * QuantumRegister(3)
     oracle = Oracle(3,2)
+    
     #wooo it works
     print((oracle*qubit1).qubits)
