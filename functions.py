@@ -45,8 +45,6 @@ def deutsch(oracle):
     return k
 
 
-
-
 # def grover_search(oracle):
 #     """
 #     implements grover's search algorithm at the given quantum register and
@@ -86,3 +84,12 @@ def deutsch(oracle):
 #
 #     pass
 
+if __name__ == '__main__':
+
+    #Create function
+    f = Operator(1, np.array( [ [1,0], [0,-1] ]))
+
+    k = deutsch(f)
+
+    #ITS ALIVE WOOOOOOOO
+    print(k)
