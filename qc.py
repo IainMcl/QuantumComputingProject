@@ -103,8 +103,8 @@ class QuantumRegister():
         """
         Normalise coefficients of qubits array
         """
-        print(type(self.qubits))
-        print(type( norm(self.qubits)))
+        #print(type(self.qubits))
+        #print(type( norm(self.qubits)))
         qubits_normalised = self.qubits/norm(self.qubits)
         self.qubits = qubits_normalised
 
@@ -162,7 +162,7 @@ class Operator():
             #Apply operator to quantum register
             #check if number of states is the same
             if rhs.n_qubits != self.n_qubits:
-                print('Number of states do not correspnd!')
+                raise TypeError('Number of states do not correspnd!')
                 return 0
 
             #Otherwise return a new quantum register
@@ -184,7 +184,7 @@ class Operator():
             #matrix multiplication between the two operators. Return another operator
 
             if rhs.size != self.size:
-                print('Number of states does not correspond')
+                raise TypeError('Number of states do not correspnd!')               
                 return 0
 
             #Otherwise take dot product of matrices
@@ -299,25 +299,25 @@ class CHadamard(Operator):
     
     
 class Oracle(Operator):
-    def __init__(desired_state, n_qubits = 1):
+    def __init__(self,desired_state, n_qubits = 1):
         self.desired_state = desired_state
-        super().__init__(self,n_qubits)
+        super(Oracle,self).__init__(n_qubits)
          
          
     def __mul__(self, rhs):
-        if not isinstance(rhs, QuantumnRegister):
+        if not isinstance(rhs, QuantumRegister):
             raise TypeError("Can only apply an oracle operator to a quantumn register not another operator")
         else:
-            rhs[self.desired_state] *= -1
+            rhs.qubits[self.desired_state] *= -1
             
-        return self
+        return rhs
             
     
 
 
 
 
-
+"""
 ########testing stuff##############
 if __name__ == '__main__':
     #Create 2 qubit hadamard gate
@@ -355,3 +355,4 @@ result = c_H*control_target
 print(result.qubits)
 
 #Result is not normalised
+"""

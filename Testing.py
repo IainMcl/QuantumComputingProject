@@ -24,4 +24,16 @@ class QCTesting(unittest.TestCase):
         result = (CH*reg1).qubits
         expected= np.array((1,0,0,0))
         self.assertEqual(result.tolist(),expected.tolist())
+        
+        
+    def test_oracle(self):
+        O = Oracle(5)
+        reg = QuantumRegister(10)
+        result = O*reg
+        self.assertEqual(result.qubits[5],-1*reg.qubits[5])
+        for i in range(reg.qubits.size):
+            if i != 5:
+                self.assertEqual(result.qubits[i], reg.qubits[i])
+        
+        
 unittest.main()
