@@ -7,7 +7,9 @@ Created on Mon Feb 19 13:29:09 2018
 import unittest
 import numpy as np
 import math
-from qc_testing import QuantumRegister, Hadamard,CHadamard, Oracle, PhaseShift
+from qc_testing import QuantumRegister, Hadamard,CHadamard, Oracle, PhaseShift, Operator
+from functions import *
+
 class QCTesting(unittest.TestCase):
     def test_mul_Hadamard(self):
         reg1 = QuantumRegister(1)
@@ -46,6 +48,18 @@ class QCTesting(unittest.TestCase):
         gate = np.array([[1,0],[0,-1]])
         expected = np.dot(gate,regQuBits)  
         np.testing.assert_almost_equal(expected.tolist(),result.qubits.tolist())
+        
+    def test_deutsch(self):
+        o1 = Operator(1, np.array([[1,0],[0,1]]))
+        self.assertEqual(deutsch(o1),0)
+        o2 = Operator(1,np.array([[1,0],[0,-1]]))
+        self.assertEqual(deutsch(o2),1)
+        
+    def test_groover(self):
+        o = Oracle(10,x=5)
+        result = groovers(o)
+        self.assertEqual(5,result)
+        
         
         
 unittest.main()
