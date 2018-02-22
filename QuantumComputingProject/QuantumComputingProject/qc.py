@@ -25,24 +25,17 @@ Some notes from Andreas:
 
     -Probably need a class for grover's iterate defined as child class of more
     general operator class?
-##################################################
+f######################################
     -Add method to check if state is normalised, if not, normalise
     -Add special class for any type of control gate, that accepts a gate, Number
-     of control qubits and number of taget qubits as inputs
+    of control qubits and number of taget qubits as inputs
     -Add get methods for matrices of operators and qubits
-    -Add class for unitary operator (H*R*H*R)
-    -
 
-##################################################
-The way the implementation works right now is that the gates are implemented
-as Operator class objects. Quantum circuits can be defined as functions that
-"string" different gates together
 """
 
 import numpy as np
 from numpy.linalg import norm
-from scipy.sparse import coo_matrix, csc_matrix, lil_matrix, identity,kron
-from math import pi
+from scipy.sparse import coo_matrix, csc_matrix, lil_matrix, identity
 
 class QuantumRegister():
     """
@@ -52,8 +45,8 @@ class QuantumRegister():
     element is the second state.
     """
 
-    def __init__(self, n_qubits=1):
-        self.n_states = int(2 ** n_qubits)
+    def __init__(self, n_qubits):
+        self.n_states = 2 ** n_qubits
         self.n_qubits = n_qubits
         self.qubits = np.zeros(self.n_states, dtype = complex)
         #Initialse quantum state at ground state.
@@ -77,15 +70,16 @@ class QuantumRegister():
         Outputs an integer representing the state measured (decimal system).
         """
         #Calculate probabilites
-        probabilities = np.zeros(self.n_states)
-        for i in range(self.n_states):
-                probabilities[i] = norm( self.qubits[i] )**2
+        probabilities = np.zeros(n_states)
+        for i in range(1, n_states):
+                probabilites[i] = norm( self.qubits[i] )**2
 
         #Choose a random state
-        n = int(self.n_states)
-        state = np.random.choice(n, p=probabilities)
+        state = np.random.choice(self.n_states, probabilities)
 
         return state
+
+
 
     def __mul__(self, other):
         """
@@ -109,14 +103,11 @@ class QuantumRegister():
         """
         Normalise coefficients of qubits array
         """
-       
+        print(type(self.qubits))
+        print(type( norm(self.qubits)))
         qubits_normalised = self.qubits/norm(self.qubits)
         self.qubits = qubits_normalised
 
-    def select(self,a,b):
-        """
-        Return quantum register with comprising of the ath to bth qubits
-        """
 
 class Operator():
     """
@@ -142,26 +133,23 @@ class Operator():
         """
         self.n_qubits = n_qubits
         self.size = 2**n_qubits
-        self.matrix = self.__create_full_matrix(self.n_qubits, base)
+        self.base = base
+        self.matrix = self.__create_full_matrix(self.n_qubits)
         #self.sparce_matrix = coo_matrix(np.zeros( ( self.size, self.size) ) )  not sure that we need thsi right now
 
 
-    def __create_full_matrix(self,n_qubits, base):
+    def __create_full_matrix(self,n_qubits):
         """
         Create matrix by taking successive tensor producs between for the total
         number of qubits.
         """
-        result = lil_matrix(base)
+        result = self.base
 
         if n_qubits == 1 :
-            result = csc_matrix(result)
-
             return result
         else:
             for i in range(n_qubits-1):
-                result = kron(result, base)
-
-            result = csc_matrix(result)
+                result = np.kron(result,self.base)
             return result
 
 
@@ -174,7 +162,8 @@ class Operator():
             #Apply operator to quantum register
             #check if number of states is the same
             if rhs.n_qubits != self.n_qubits:
-                raise ValueError('Number of states do not correspnd: rhs.n_qubits = {}, lhs.n_qubits = {}'.format(rhs.n_qubits,self.n_qubits))
+                print('Number of states do not correspnd!')
+                return 0
 
             #Otherwise return a new quantum register
             result = QuantumRegister(rhs.n_qubits)
@@ -192,28 +181,18 @@ class Operator():
             return result
 
         if isinstance(rhs, Operator):
-            """
-            Matrix multiplication between the two operators
-            """
-            if rhs.size != self.size:
-                raise ValueError('Operators must of of the same size: rhs.size = {} lhs.size = {} '.format(rhs.size,self.size))
+            #matrix multiplication between the two operators. Return another operator
 
-            #Otherwise take dot product of
-            result = Operator(self.n_qubits)
-            result.matrix = self.matrix.dot(rhs.matrix)
+            if rhs.size != self.size:
+                print('Number of states does not correspond')
+                return 0
+
+            #Otherwise take dot product of matrices
+            result = Operator(self.size)
+            result.matrix = np.dot(self.matrix, rhs.matrix)
+
 
             return result
-
-
-    def __mod__(self, other):
-        """
-        Override mod operator to defint tensor product between operators
-        """
-        #Tensor product between the two operators
-        result = Operator(self.n_qubits, other.n_qubits)
-        result.matrix = kron(self.matrix, other.matrix)
-        return result
-
 
     def dag(self):
         """
@@ -221,34 +200,11 @@ class Operator():
         """
 
         herm_transpose = Operator(self.n_qubits)
-        herm_transpose.matrix = self.matrix.getH()
+        herm_transpose.matrix = self.matrix.conjugate()
 
         return herm_transpose
 
-    def __getitem__(self, key):
-        """
-        Override of the [] operator to return a "subregister" of the current quantum reigster. The method checks first
-        to see whether the subregister desired contains entangled qubits or not, and raises an error if it does. The
-        condition to check whether a subregister is entangled or not is that non zero elelents of the corresponding
-        array must all be either in odd or even indexes.
-        :param slice: qubit number
-        :return: subregister as defined by slice
-        """
 
-        #Length of new quantum register:
-        if key.start == None:
-            l = 1
-        else :
-            l = key.stop - key.start
-
-        # Extract the qubits
-        qubits = self.qubits
-
-
-        # Check to see if the sliced qubits are enatngled or not.
-
-
-        pass
 
 
 class Hadamard(Operator):
@@ -256,77 +212,39 @@ class Hadamard(Operator):
     Class that defines hadamard gate. This class extends the Operator class. For
     now it simply calls the parent classes and passes to it the base argument.
     """
+
     def __init__(self, n_qubits=1):
         #Define "base" hadamard matrix for one qubit and correponding sparse matrix
         self.base = 1/np.sqrt(2)*np.array( [ [1 , 1], [1 ,-1] ] )
         super(Hadamard, self).__init__(n_qubits,self.base)
 
-class PhaseShift(Operator):
-    """
-    Implementation of phase shift gate.
-    """
-    def __init__(self, phi, n_qubits=1):
-        self.base = np.array( [ [ 1, 0], [ 0, np.exp( 1j*phi ) ] ])
-        super(PhaseShift, self).__init__(n_qubits, self.base)
 
-class Not(Operator):
-    """Implements NOT gate
-    """
-    def __init__(self, n_qubits=1):
-        self.base = np.array( [ [0,1], [1,0] ])
-        super(Not, self).__init__(n_qubits, self.base)
+    # def apply(self, quant_register):
+    #     """
+    #     Apply hadamard gate to given quantum register
+    #
+    #     Vary number of inputs? If two inputs are submitted, then the first one
+    #     automatically becomes a control qubit?
+    #     """
+    #
+    #     #Initialize resulting quantum register
+    #     result = QuantumRegister( quant_register.n_qubits )
+    #
+    #     #Calculate result
+    #     result.qubits = np.dot(self.matrix, quant_register.qubits )
+    #
+    #     #Normalise result
+    #     result.normalise()
+    #
+    #
+    #     return result
 
-class CUGate(Operator):
-    """
-    Class that implements a controlled U gate
-    """
 
-    def __init__(self, base, n_control, n_target=1):
-        """
-        Class accepts the base matrix U, number of control qubits and number of
-        target qubits.
-        Inputs:
-        base: matrix/operator
-        n_control: number of control qubits
-        n_target: number of target qubits (has been set to 1 as default)
-        """
-        self.n_control = n_control
-        self.n_target = n_target
-        self.n_qubits = self.n_target + self.n_control
-        self.size = 2**(self.n_control + self.n_target)
-        self.matrix = self.__create_sparse_matrix(base)
-
-    def __create_sparse_matrix(self,base):
-        """
-        Creates spasrse matrix according to how many target qubits we have.
-        Matrix is constructed using the 'lil' format, which is better for
-        incremental construction of sparse matrices and is then converted
-        to 'csc' format, which is better for operations between matrices
-        """
-
-        #Create sparse hadamard matrix
-        base_matrix = lil_matrix(base.matrix)
-
-        #Create full sparse identity matrix
-        sparse_matrix = identity(self.size, format='lil')
-
-        #"Put" dense hadamard matrix in sparse matrix
-        target_states = 2**self.n_target
-        sub_matrix_index = self.size-target_states
-        sparse_matrix[sub_matrix_index: , sub_matrix_index: ] = base_matrix
-
-        #Convert to csc format
-        c_gate = csc_matrix(sparse_matrix)
-
-        return c_gate
 
 class CHadamard(Operator):
     """
     Class that defines controlled hadamard gate. Takes as inputs number of control
-    qubits and number of target qubits. And builds a sparse matrix.
-    ############################
-    This class may not be necessary anymore
-    ###########################
+    qubits and number of target qubits. And builds a sparse matrix
     """
 
     def __init__(self, n_control, n_target):
@@ -361,39 +279,27 @@ class CHadamard(Operator):
         controlled_hadamard = csc_matrix(sparse_matrix)
 
         return controlled_hadamard
-    
-class ControlV(Operator):
-    def __init__(self,n_qubits=1):
-        self.base = np.array([[1,0],[0,1j]])
-        super().__init__(n_qubits-1,self.base)
-        
-class ControlNot(Operator):
-    def __init__(self):
-        self = Hadamard()*ControlV()*ControlV()*Hadamard()
-        
-class Toffoli(Operator):
-    def __init__(self):
-        pass
-    
-        
-class Oracle(Operator):
-    """
-    Class that implements the oracle. This gate takes an n qubits as
-    input and flips it if f(x) = 1, otherwise it leaves it as the same.
-    """
 
-    def __init__(self, n_qubits=1, x=0):
+    def apply(self, quant_register):
         """
-        Class constructor.
-        Inputs:
-        n_states: Total number of n_states
-        x: state that is fliped.
+        Applies controlled-Hadamard gate to given quantum register and returns
+        the result
         """
-        self.n_states = 2**n_qubits
-        self.n_qubits = n_qubits
-        #Operator matrix will be identity with a -1 if the xth,xth element
-        self.matrix = identity(self.n_states, format='csc')
-        self.matrix[x,x] = -1
+
+        #Initialise result qunatum register
+        result = QuantumRegister(quant_register.n_qubits)
+
+        #Calculate result
+        result.qubits = np.dot(self.matrix, quant_register.qubits)
+
+        #Normalise result
+        result.normalise()
+
+        return result
+
+
+
+
 
 
 ########testing stuff##############
@@ -405,7 +311,6 @@ if __name__ == '__main__':
     target2 = QuantumRegister(2)
 
     #Apply hadamard gate to target state
-    H2 = Hadamard(2)
     result_1 = H2*target2
     #Print result
     print(result_1.qubits)
@@ -419,11 +324,6 @@ if __name__ == '__main__':
 
     #Define controlled hadamard gate with 1 control and 2 targets
     c_H = CHadamard(1,2)
-    h1 = Hadamard()
-    print(h1.matrix)
-    c_u = CUGate(h1,2)
-
-    print(c_u.matrix.toarray())
 
     #Create new quantum register with control and target qubits
     control_target = control1_superposition*target2
@@ -431,19 +331,11 @@ if __name__ == '__main__':
     #Print new quantum register
     print(control_target.qubits)
 
-    #Apply controlled hadamard gate to this quantum register
-    print(control_target.n_states )
-    result = c_H*control_target
+#Apply controlled hadamard gate to this quantum register
+print(control_target.n_states )
+result = c_H*control_target
 
-    #Print result
-    print(result.qubits)
+#Print result
+print(result.qubits)
 
-    I = Operator(2, np.eye(2))
-    print(I.matrix.toarray())
-
-    #Testing oracle operator
-    qubit1 = Hadamard(3) * QuantumRegister(3)
-    oracle = Oracle(3,2)
-    
-    #wooo it works
-    print((oracle*qubit1).qubits)
+#Result is not normalised

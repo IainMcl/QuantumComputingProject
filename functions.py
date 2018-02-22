@@ -5,6 +5,7 @@ Created on Tue Feb 20 15:22:28 2018
 @author: Lewis
 """
 from qc_testing import *
+import numpy as np
 def init_qubit(theta,phi):
     """
     Initialises a qubit to the following state:
@@ -50,7 +51,7 @@ def deutsch(oracle):
     k = final.measure()
     return k
 
- def grover_search(oracle):
+def grover_search(oracle):
     """
     implements grover's search algorithm at the given quantum register and
     oracle, for just one element. Will later be extedned to multiple elements.
@@ -87,6 +88,19 @@ def deutsch(oracle):
 
     k = psi.measure()
     return k
+
+def quantumAdder(a,b):
+    x0 = QuantumRegister(a.n_qubits)
+    CN = CUGate(Not(),1)
+    I = Operator(1,np.eye(2))
+    CNN = CUGate(Not(),2)
+    print(CNN.matrix.toarray())
+    CNN = CNN%I
+    print(CNN.matrix.size)
+    reg1 = a*b*x0
+    print(reg1.qubits)
+    print(CNN.matrix.size)
+    reg1 = CNN*reg1
 
 if __name__ == '__main__':
 

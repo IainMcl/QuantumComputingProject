@@ -57,30 +57,8 @@ class QCTesting(unittest.TestCase):
         
     def test_grover(self):
         o = Oracle(10,x=5)
-        result = grover_search(o)
+        result = grovers(o)
         self.assertEqual(5,result)
-        
-    def test_adder(self):
-        a = QuantumRegister(2)
-        b = QuantumRegister(2)
-        a.qubits = np.array([0,1])
-        b.qubits = np.array([0,1])
-        result = quantumAdder(a,b)
-        self.assertEqual(np.array([1,0]),result.qubits)
-        
-    def testControlV(self):
-        reg = QuantumRegister(1)
-        reg.qubits = np.array([1,1])
-        result = ControlV(1)*reg
-        expected = reg
-        expected.qubits[-1] *= 1j
-        np.testing.assert_almost_equal(expected.qubits.tolist(),result.qubits.tolist())
-        
-    def test_operator_tensor(self):
-        H = Hadamard()
-        result = H%H
-        expected = 0.5*np.array([[1,1,1,1],[1,-1,1,-1],[1,1,-1,-1],[1,-1,-1,1]])
-        np.testing.assert_almost_equal(result.matrix.toarray().tolist(),expected.tolist())
         
         
         

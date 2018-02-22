@@ -109,7 +109,7 @@ class QuantumRegister():
         """
         Normalise coefficients of qubits array
         """
-       
+        
         qubits_normalised = self.qubits/norm(self.qubits)
         self.qubits = qubits_normalised
 
@@ -174,7 +174,7 @@ class Operator():
             #Apply operator to quantum register
             #check if number of states is the same
             if rhs.n_qubits != self.n_qubits:
-                raise ValueError('Number of states do not correspnd: rhs.n_qubits = {}, lhs.n_qubits = {}'.format(rhs.n_qubits,self.n_qubits))
+                raise ValueError('Number of states do not correspnd!')
 
             #Otherwise return a new quantum register
             result = QuantumRegister(rhs.n_qubits)
@@ -196,7 +196,7 @@ class Operator():
             Matrix multiplication between the two operators
             """
             if rhs.size != self.size:
-                raise ValueError('Operators must of of the same size: rhs.size = {} lhs.size = {} '.format(rhs.size,self.size))
+                raise ValueError('Operators must of of the same size ')
 
             #Otherwise take dot product of
             result = Operator(self.n_qubits)
@@ -224,32 +224,6 @@ class Operator():
         herm_transpose.matrix = self.matrix.getH()
 
         return herm_transpose
-
-    def __getitem__(self, key):
-        """
-        Override of the [] operator to return a "subregister" of the current quantum reigster. The method checks first
-        to see whether the subregister desired contains entangled qubits or not, and raises an error if it does. The
-        condition to check whether a subregister is entangled or not is that non zero elelents of the corresponding
-        array must all be either in odd or even indexes.
-        :param slice: qubit number
-        :return: subregister as defined by slice
-        """
-
-        #Length of new quantum register:
-        if key.start == None:
-            l = 1
-        else :
-            l = key.stop - key.start
-
-        # Extract the qubits
-        qubits = self.qubits
-
-
-        # Check to see if the sliced qubits are enatngled or not.
-
-
-        pass
-
 
 class Hadamard(Operator):
     """
@@ -361,21 +335,7 @@ class CHadamard(Operator):
         controlled_hadamard = csc_matrix(sparse_matrix)
 
         return controlled_hadamard
-    
-class ControlV(Operator):
-    def __init__(self,n_qubits=1):
-        self.base = np.array([[1,0],[0,1j]])
-        super().__init__(n_qubits-1,self.base)
-        
-class ControlNot(Operator):
-    def __init__(self):
-        self = Hadamard()*ControlV()*ControlV()*Hadamard()
-        
-class Toffoli(Operator):
-    def __init__(self):
-        pass
-    
-        
+
 class Oracle(Operator):
     """
     Class that implements the oracle. This gate takes an n qubits as
