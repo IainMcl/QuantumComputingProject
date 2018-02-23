@@ -82,9 +82,9 @@ class QCTesting(unittest.TestCase):
     
     def test_settingQubits(self):
         a = GetQuBitofValue(np.pi/4,np.pi/4)
-        print(a.qubits)
-        print(a.measure())
-        expected = np.array([])
+        expected = (1/np.sqrt(2))*np.array([1,1])
+        result = np.absolute(a.qubits)
+        np.testing.assert_almost_equal(expected,result)
         
         
         
