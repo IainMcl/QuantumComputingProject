@@ -54,12 +54,12 @@ class QCTesting(unittest.TestCase):
         self.assertEqual(deutsch(o1),0)
         o2 = Operator(1,np.array([[1,0],[0,-1]]))
         self.assertEqual(deutsch(o2),1)
-        
+       
     def test_grover(self):
         o = Oracle(10,x=5)
         result = grover_search(o)
         self.assertEqual(5,result)
-        
+     
     def test_adder(self):
         a = QuantumRegister(1)
         b = QuantumRegister(1)
@@ -79,6 +79,13 @@ class QCTesting(unittest.TestCase):
         result = H%H
         expected = 0.5*np.array([[1,1,1,1],[1,-1,1,-1],[1,1,-1,-1],[1,-1,-1,1]])
         np.testing.assert_almost_equal(result.matrix.toarray().tolist(),expected.tolist())
+    
+    def test_settingQubits(self):
+        a = GetQuBitofValue(np.pi/4,np.pi/4)
+        print(a.qubits)
+        print(a.measure())
+        expected = np.array([])
+        
         
         
         

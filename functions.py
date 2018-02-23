@@ -93,19 +93,25 @@ def quantumAdder(a,b):
     x0 = QuantumRegister(a.n_qubits)
     CN = CUGate(Not(),1)
     I = Operator(3, np.eye(3))
-    print(I.matrix.toarray)
     CNN = CUGate(Not(),2)
     CNN = CNN
     reg1 = a*b*x0
-    print((I%CN).matrix.size)
     reg1 = CNN*reg1
     I = Operator(reg1.n_qubits, np.eye(3))
     CN = I%CN
     reg2 = CN*reg1
     k = reg2.measure()
     #untensorfy here
-    print(k)
     return k
+
+def GetQuBitofValue(theta, phi):
+    register = QuantumRegister()
+    H = Hadamard()
+    P1 = PhaseShift(2*theta,register.n_qubits)
+    P2 = PhaseShift((np.pi*0.5)+phi,register.n_qubits)
+    result = H*P1*H*P2*register
+    return result
+    
     
 
 if __name__ == '__main__':
