@@ -92,15 +92,21 @@ def grover_search(oracle):
 def quantumAdder(a,b):
     x0 = QuantumRegister(a.n_qubits)
     CN = CUGate(Not(),1)
-    I = Operator(1,np.eye(2))
+    I = Operator(3, np.eye(3))
+    print(I.matrix.toarray)
     CNN = CUGate(Not(),2)
-    print(CNN.matrix.toarray())
-    CNN = CNN%I
-    print(CNN.matrix.size)
+    CNN = CNN
     reg1 = a*b*x0
-    print(reg1.qubits)
-    print(CNN.matrix.size)
+    print((I%CN).matrix.size)
     reg1 = CNN*reg1
+    I = Operator(reg1.n_qubits, np.eye(3))
+    CN = I%CN
+    reg2 = CN*reg1
+    k = reg2.measure()
+    #untensorfy here
+    print(k)
+    return k
+    
 
 if __name__ == '__main__':
 

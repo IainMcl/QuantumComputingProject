@@ -61,10 +61,8 @@ class QCTesting(unittest.TestCase):
         self.assertEqual(5,result)
         
     def test_adder(self):
-        a = QuantumRegister(2)
-        b = QuantumRegister(2)
-        a.qubits = np.array([0,1])
-        b.qubits = np.array([0,1])
+        a = QuantumRegister(1)
+        b = QuantumRegister(1)
         result = quantumAdder(a,b)
         self.assertEqual(np.array([1,0]),result.qubits)
         
@@ -72,7 +70,7 @@ class QCTesting(unittest.TestCase):
         reg = QuantumRegister(1)
         reg.qubits = np.array([1,1])
         result = ControlV(1)*reg
-        expected = reg
+#        expected = reg
         expected.qubits[-1] *= 1j
         np.testing.assert_almost_equal(expected.qubits.tolist(),result.qubits.tolist())
         
