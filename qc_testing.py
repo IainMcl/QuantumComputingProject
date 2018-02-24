@@ -276,6 +276,14 @@ class Not(Operator):
         self.base = np.array( [ [0,1], [1,0] ])
         super(Not, self).__init__(n_qubits, self.base)
 
+class Unitary(Operator):
+    """
+    unitary gate
+    """
+    def __init__(self, theta, phi, n_qubits = 1):
+        self.base = np.array([[np.cos(theta), np.sin(theta)*-1j*np.exp( -1j*phi )], [np.sin(theta)*-1j*np.exp( -1j*phi ), np.cos(theta)]])
+        super(Unitary, self).__init__(n_qubits, self.base)
+
 class CUGate(Operator):
     """
     Class that implements a controlled U gate
@@ -447,3 +455,6 @@ if __name__ == '__main__':
     
     #wooo it works
     print((oracle*qubit1).qubits)
+    
+    #check unitarty
+    print(Unitary(pi,0).base)
