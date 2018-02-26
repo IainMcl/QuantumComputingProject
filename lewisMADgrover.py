@@ -27,6 +27,7 @@ def grover_search(oracle):
     print(H.n_qubits+Hn.n_qubits)
     print(gate1.matrix.toarray())
     print(gate1.n_qubits)
+    gate1.n_qubits = H.n_qubits + Hn.n_qubits
     reg = gate1*reg
     
     #reflection gate > I|w>-2(<e|w>)|e>
