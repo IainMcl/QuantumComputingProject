@@ -39,16 +39,11 @@ def deutsch(oracle):
     h_gate = Hadamard()
     register2 = h_gate * not_gate  * QuantumRegister()
 
-    #Pass register 1 through hadamard
-    h1 = Hadamard(n)
-    register1 = h1 * register1
-    register1 = oracle * register1
+    #Pass register 1 through hadamard gate
+    register1 = h_gate * register1
 
-    #Pass again through hadamard
-    final = h1 * register1
+    #Apply oracle to register 2
 
-    #Perform measurement
-    k = final.measure()
     return k
 
 def grover_search(oracle):

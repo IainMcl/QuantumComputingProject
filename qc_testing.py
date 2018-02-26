@@ -304,7 +304,7 @@ class CUGate(Operator):
         self.size = 2**(self.n_control + self.n_target)
         self.matrix = self.__create_sparse_matrix(base)
 
-    def __create_sparse_matrix(self,base):
+    def __create_sparse_matrix(self, base):
         """
         Creates spasrse matrix according to how many target qubits we have.
         Matrix is constructed using the 'lil' format, which is better for
@@ -327,6 +327,25 @@ class CUGate(Operator):
         c_gate = csc_matrix(sparse_matrix)
 
         return c_gate
+
+    def apply(self, control, target):
+        """
+        Applies the "V" gate to the target register according to the values in the control register
+        :param control: control register
+        :param target: target register
+        :return: result -> resulting quantum register
+        """
+        result = QuantumRegister(target.n_qubits)
+
+        #Base is applied only if the last element of the qubits np array is non zero.
+        if control.qubits[-1] != 0:
+            result = self.base * target
+        else:
+            result = target
+
+        return result
+
+
 
 class CHadamard(Operator):
     """
@@ -369,15 +388,13 @@ class CHadamard(Operator):
         controlled_hadamard = csc_matrix(sparse_matrix)
 
         return controlled_hadamard
-    
-class ControlV(Operator):
-    def __init__(self,n_qubits=1):
-        self.base = np.array([[1,0],[0,1j]])
-        super().__init__(n_qubits-1,self.base)
-        
-class ControlNot(Operator):
-    def __init__(self):
-        self = Hadamard()*ControlV()*ControlV()*Hadamard()
+
+
+class ControlNot(CUGate):
+    def __init__(self, n_control=1, n_target=1):
+        self.base = Not()
+        super(ControlNot, self).__init__(self.base, n_control, n_target)
+
         
 class Toffoli(Operator):
     def __init__(self):
@@ -401,7 +418,7 @@ class Oracle(Operator):
         self.n_qubits = n_qubits
         #Operator matrix will be identity with a -1 if the xth,xth element
         self.matrix = identity(self.n_states, format='csc')
-        self.matrix[x,x] = -1
+        self.matrix[x, x] = -1
 
 
 ########testing stuff##############
