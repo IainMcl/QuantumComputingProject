@@ -64,6 +64,7 @@ class QCTesting(unittest.TestCase):
         a = QuantumRegister(1)
         b = QuantumRegister(1)
         result = quantumAdder(a,b)
+        print(result.qubits)
         self.assertEqual(np.array([1,0]),result.qubits)
         
     def testControlV(self):

@@ -208,7 +208,10 @@ class Operator():
         Override mod operator to defint tensor product between operators
         """
         # Tensor product between the two operators
-        result = Operator(self.n_qubits, other.n_qubits + self.n_qubits)
+        if not isinstance(other,Operator):
+            raise TypeError("Cannot tensor product {} with an operator".format(other.type))
+        n_qubits = self.n_qubits + other.n_qubits
+        result = Operator(n_qubits)
         result.matrix = kron(self.matrix, other.matrix)
         return result
 

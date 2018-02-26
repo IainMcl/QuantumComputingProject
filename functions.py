@@ -90,11 +90,17 @@ def grover_search(oracle):
     return k
 
 def quantumAdder(a,b):
+    """
+    Implements a quantum addition circuit using a C-Not and Toffili Gates
+    Takes in 2 single qubit quantum registers as input
+    returns a quantum register containing the sum of the values of the 2 input registers
+    
+    currently implements the circuit but fails to return the right thing
+    """
     x0 = QuantumRegister(a.n_qubits)
     CN = CUGate(Not(),1)
     I = Operator(3, np.eye(3))
     CNN = CUGate(Not(),2)
-    CNN = CNN
     reg1 = a*b*x0
     reg1 = CNN*reg1
     I = Operator(reg1.n_qubits, np.eye(3))
@@ -105,6 +111,9 @@ def quantumAdder(a,b):
     return k
 
 def GetQuBitofValue(theta, phi):
+    """
+    Implements a setter circuit, setting the value of 
+    """
     register = QuantumRegister()
     H = Hadamard()
     P1 = PhaseShift(2*theta,register.n_qubits)
