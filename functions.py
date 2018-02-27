@@ -4,7 +4,7 @@ Created on Tue Feb 20 15:22:28 2018
 
 @author: Lewis
 """
-from qc_testing import *
+from qc import *
 import numpy as np
 def init_qubit(theta,phi):
     """

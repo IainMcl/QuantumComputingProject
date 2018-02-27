@@ -407,12 +407,13 @@ class Oracle(Operator):
         n_states: Total number of n_states
         x: state that is fliped.
         """
+        super(Oracle, self).__init__(n_qubits)
         self.n_states = 2 ** n_qubits
         self.n_qubits = n_qubits
         # Operator matrix will be identity with a -1 if the xth,xth element
         self.matrix = identity(self.n_states, format='csc')
         self.matrix[x, x] = -1
-
+        
 
 ########testing stuff##############
 if __name__ == '__main__':

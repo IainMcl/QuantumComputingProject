@@ -22,27 +22,31 @@ def grovers():
     reg2=n_gate_1*reg2
     reg2=h_gate_1*reg2
     reg1=h_gate_n*reg1
-    #print(reg1.qubits)
+    print(reg1.qubits)
 
     # Define fk and f0
     fk=Oracle(nqubits, x=k)
     f0=Oracle(nqubits, x=0)
-    
+    print(fk.matrix.toarray())
     m=20
     # Grovers algorithm
     for i in (range(m)):
         #print (i)
         reg1=h_gate_n*f0*h_gate_n*fk*reg1
-
-    #print(reg1.qubits)
+        '''
+        reg1=fk*reg1
+        print(reg1.qubits)
+        reg1=h_gate_n*reg1
+        print(reg1.qubits)
+        reg1=f0*reg1
+        print(reg1.qubits)
+        reg1=h_gate_n*reg1
+        print(reg1.qubits)
+        '''
+    print(reg1.qubits)
     print(reg1.measure())
 
-    '''
-    reg1=fk*reg1
-    reg1=h_gate_n*reg1
-    reg1=f0*reg1
-    reg1=h_gate_n*reg1
-    '''
+   
 
 
 def main():
