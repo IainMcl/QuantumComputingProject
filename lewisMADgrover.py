@@ -16,19 +16,11 @@ def grover_search(oracle):
     reg1 = QuantumRegister()
     reg0 = QuantumRegister()
     #set registers here
-    
-    #entangle registers
-    reg = reg1*reg0
-    
+    #
+    #
     #gate 1
-    gate1 = H%Hn
-    print(Hn.n_qubits)
-    print(H.n_qubits)
-    print(H.n_qubits+Hn.n_qubits)
-    print(gate1.matrix.toarray())
-    print(gate1.n_qubits)
-    gate1.n_qubits = H.n_qubits + Hn.n_qubits
-    reg = gate1*reg
+    reg0 = Hn*reg0
+    reg1 = H*reg1
     
     #reflection gate > I|w>-2(<e|w>)|e>
     
@@ -43,6 +35,16 @@ def grover_search(oracle):
         
     k = reg.measure()
     return k
+
+class Oracle():
+    def __init__(self, x):
+        self.x = x
+    def __getitem__(self, key):
+        if key == x:
+            return 1
+        else:
+            return 0
+
 
 if __name__=='__main__':
     oracle = Oracle(x=3,n_qubits = 10)

@@ -47,4 +47,15 @@ def grovers():
 
 def main():
     grovers()
+    
+    
+class LewisOracle():
+    def __init__(self, x):
+        self.x = x
+    def __getitem__(self, key):
+        if key == x:
+            return 1
+        else:
+            return 0
+
 main()
