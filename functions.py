@@ -115,8 +115,25 @@ def GetQuBitofValue(theta, phi):
     P2 = PhaseShift((np.pi*0.5)+phi,register.n_qubits)
     result = H*P1*H*P2*register
     return result
-    
-    
+
+def invert_average(quant_register):
+    """
+    Applies the inversion about the average operation to the current state, given
+    the initial state. Meant to be used as a helper function for Grover's algorithm.
+    """
+    #Extract risze of register and define hadamard gate
+    register_size = quant_register.size
+    h_gate = Hadamard(register_size)
+
+    #Set the quantum register in |0> basis
+    psi0 = h_gate * quant_register
+
+    #Eigenvalue kickback by applying control not gate to this register
+
+    pass
+
+
+
 
 if __name__ == '__main__':
 
