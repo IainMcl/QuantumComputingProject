@@ -52,15 +52,17 @@ class QuantumRegister():
     element is the second state.
     """
 
-    def __init__(self, n_qubits=1):
+    def __init__(self, n_qubits=1, isempty=False):
         self.n_states = int(2 ** n_qubits)
         self.n_qubits = n_qubits
-        self.qubits = np.zeros(self.n_states, dtype = complex)
-        #Initialse quantum state at ground state.
-        self.qubits[0] = 1.0
+        self.qubits = np.zeros(self.n_states, dtype=complex)
+        # If isempty = False, initialise in ground state
+        if not isempty:
+            self.qubits[0] = 1.0
 
 
-    def set_qubit(self, a ,b):
+
+    def set_qubit(self, a, b):
         """
         Set qubit of state a to value b. Not sure how to do this right now.
         Maybe instead of having a method, an extra argument can be passed to
@@ -92,17 +94,48 @@ class QuantumRegister():
         Tensor prodcut between the two quantum registers. Outputs a new quantum
         register.
         """
-        #Result is tensor product of the qubits in each state
+        # Result is tensor product of the qubits in each state
         temp_result = np.kron(self.qubits, other.qubits)
 
-        #Result has to be normalized
+        # Result has to be normalized
         result_normalized = temp_result/norm(temp_result)
 
-        #Creaete quantum register object for result
+        # Creaete quantum register object for result
         qmr_result = QuantumRegister(self.n_qubits+other.n_qubits )
         qmr_result.qubits = result_normalized
 
         return qmr_result
+
+    def __add__(self, other):
+        """
+        Overrides + operator to add two quantum registers |c> = |a> + |b>.
+        Quantum registers have to be of the same size. Result is normalised at the
+        end of the operation.
+
+        :param other: the right hand side quantum register
+        :return: resulting quantum register whose qubit array is simply the normalised
+        sum of the current quantum register and "other"
+        """
+
+        # Check if registers have the same size, if not return error
+        if self.n_qubits != other.n_qubits :
+            raise ValueError('Registers have the same size!')
+
+        # Define new quantum register and add the qubits
+        result = QuantumRegister(self.n_qubits)
+        result.qubits = self.qubits + other.qubits
+
+        # Normalise and return
+        #result.normalise()
+
+        return result
+
+    def shift(self, n):
+        """
+        Implements + n (mod2^n_states) by rolling the qubit array by n.
+        :param n: number of shifts
+        """
+        self.qubits = np.roll(self.qubits, n)
 
 
     def normalise(self):
@@ -113,7 +146,7 @@ class QuantumRegister():
         qubits_normalised = self.qubits/norm(self.qubits)
         self.qubits = qubits_normalised
 
-    def select(self,a,b):
+    def select(self, a, b):
         """
         Return quantum register with comprising of the ath to bth qubits
         """
@@ -344,6 +377,56 @@ class CUGate(Operator):
             result = target
 
         return result
+
+
+class fGate(Operator):
+    """
+    Class that implements the Uf operator, where f is a black box function f : {0,1}^n -> {0,1}, such that
+    Uf|x>|y> -> |x>|(y + f(x))(mod2)>
+    """
+
+    def __init__(self, n_control, f):
+        """
+        Class constructor
+        :param n_control: number of control qubits
+        :param f: callable black box function
+        """
+        self.f = f
+        #Not sure what to do about base matrix yet
+        super(fGate, self).__init__(n_control + 1)
+
+    def apply(self, control, target):
+        """
+        Returns two new quantum registers one with the altered qubits and one
+        without?
+        :param control:
+        :param target:
+        :return:
+        """
+
+        if control.n_qubits != self.n_qubits - 1:
+            raise ValueError('Number of qubits for control qubit do not match')
+
+        control_qubits = control.qubits
+        target_qubits = target.qubits
+        result = QuantumRegister(target.n_qubits, isempty=True)
+        result_qubits = np.zeros(2**result.n_qubits, dtype=complex)
+
+        #Initialise not_gate
+        n_gate = Not()
+
+        for i in range(control.n_states):
+            if self.f(i) == 1 and control_qubits[i] != 0:
+                result = result + n_gate * target
+            elif self.f(i) == 0 and control_qubits[i] != 0:
+                result = result + target
+
+        #normalise at the end
+        result.normalise()
+
+        return result
+
+
 
 
 
