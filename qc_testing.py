@@ -165,12 +165,29 @@ class QuantumRegister():
         qubits_normalised = self.qubits/norm(self.qubits)
         self.qubits = qubits_normalised
 
+    def print_ket_bin(self, QR):
+        """
+        prints quantum register in ket notation in binary form
+        """
+        N = len(QR)
+        n = np.log2(N)
+        for i in range(N):
+            x = np.binary_repr(i)
+            print(str(QR[i])+'|',x,'>')
+
+
+    def print_ket_int(self, QR):
+        """
+        prints quantum register in ket notation in integer form
+        """
+        N = len(QR)
+        n = np.log2(N)
+        for i in range(N):
+            print(str(QR[i])+'|',i,'>')
+
     def select(self, a, b):
         """
-        Return quantum register with comprising of the ath to bth qubits
-        """
-
-class Operator():
+        Return quantum register with comprising of the ath to bth qubitsclass Operator():
     """
     Class that defines a quantum mechanical operator. The operator is
     a matrix. Only non zero elements are saved in a list of triplets. For each
