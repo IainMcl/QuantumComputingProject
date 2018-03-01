@@ -130,6 +130,25 @@ class QuantumRegister():
 
         return result
 
+    def __str__(self):
+        """
+        Overrides str method to print out quantum register in braket notation
+        :return: rep : string reply
+        """
+        qubits = self.qubits
+        l = len(qubits)
+        n_qubits = self.n_qubits
+        if qubits[1] != 0:
+            rep = '({0:+.2f})'.format(qubits[1]) + "*|" + np.binary_repr(0, n_qubits) + "> "
+
+        for i in range(1, l):
+            if qubits[i] == 0:
+                continue
+            rep = rep + '({0:+.2f})'.format(qubits[i]) + "*|" + np.binary_repr(i, n_qubits) + "> "
+
+        return rep
+
+
     def shift(self, n):
         """
         Implements + n (mod2^n_states) by rolling the qubit array by n.
