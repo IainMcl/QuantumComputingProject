@@ -195,12 +195,24 @@ class QuantumRegister:
 
                     return target_register
 
-    def return_target(self):
+
+    def remove_aux(self, a):
         """
-        Returns target register. To be used after the application of a control gate to
-        "untensor" the register.
+        Removes auxillary qubit from quantum register
+        :param a:
         :return:
         """
+
+        # Remove every second element of the base state array. Then divide every element by a
+        base_states = self.qubits
+        new_base_state = base_states[::2]/a
+        self.qubits = new_base_state
+        self.n_qubits = self.n_qubits - 1
+        self.n_states = self.n_states/2
+
+
+
+
 
     def normalise(self):
         """
@@ -382,7 +394,7 @@ class Unitary(Operator):
         super(Unitary, self).__init__(n_qubits, self.base)
 
     
-class apply_U(Operator, QR, U, m, n=-1):#untested <------
+def apply_U(Operator, QR, U, m, n=-1):#untested <------
     """
     applies 2by2 matrix 'U' onto specifiec places in a quantum regester 'QR'
     does not construct matrix, possibnly more efficent for large number of qubits
