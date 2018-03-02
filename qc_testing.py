@@ -44,7 +44,7 @@ from numpy.linalg import norm
 from scipy.sparse import coo_matrix, csc_matrix, lil_matrix, identity,kron
 from math import pi
 
-class QuantumRegister():
+class QuantumRegister:
     """
     Quantum register class. The quantum register is saved as a complex
     numpy array. Each element of the array is the amplitude of the
@@ -53,6 +53,12 @@ class QuantumRegister():
     """
 
     def __init__(self, n_qubits=1, isempty=False):
+        """
+        Class constructor
+        :param n_qubits: number of qubits in quantum register
+        :param isempty: parameter that tells whether the quantum register should be empty.
+        set to False by default.
+        """
         self.n_states = int(2 ** n_qubits)
         self.n_qubits = n_qubits
         self.qubits = np.zeros(self.n_states, dtype=complex)
@@ -78,12 +84,12 @@ class QuantumRegister():
         Make a measurement. Square all the amplitudes and choose a random state.
         Outputs an integer representing the state measured (decimal system).
         """
-        #Calculate probabilites
+        # Calculate probabilities
         probabilities = np.zeros(self.n_states)
         for i in range(self.n_states):
                 probabilities[i] = norm( self.qubits[i] )**2
 
-        #Choose a random state
+        # Choose a random state
         n = int(self.n_states)
         state = np.random.choice(n, p=probabilities)
 
@@ -91,7 +97,7 @@ class QuantumRegister():
 
     def __mul__(self, other):
         """
-        Tensor prodcut between the two quantum registers. Outputs a new quantum
+        Tensor product between the two quantum registers. Outputs a new quantum
         register.
         """
         # Result is tensor product of the qubits in each state
@@ -100,7 +106,7 @@ class QuantumRegister():
         # Result has to be normalized
         result_normalized = temp_result/norm(temp_result)
 
-        # Creaete quantum register object for result
+        # Create quantum register object for result
         qmr_result = QuantumRegister(self.n_qubits+other.n_qubits )
         qmr_result.qubits = result_normalized
 
@@ -138,8 +144,10 @@ class QuantumRegister():
         qubits = self.qubits
         l = len(qubits)
         n_qubits = self.n_qubits
-        if qubits[1] != 0:
-            rep = '({0:+.2f})'.format(qubits[1]) + "*|" + np.binary_repr(0, n_qubits) + "> "
+        if qubits[0] != 0:
+            rep = '({0:+.2f})'.format(qubits[0]) + "*|" + np.binary_repr(0, n_qubits) + "> "
+        else:
+            rep = ''
 
         for i in range(1, l):
             if qubits[i] == 0:
@@ -156,38 +164,84 @@ class QuantumRegister():
         """
         self.qubits = np.roll(self.qubits, n)
 
+    def split(self):
+        """
+        Splits the register into target and control registers. It is assumed that the target
+        register is of size 1. This method is meant to be used after the application of
+        any sort of control gate.
+        :return: Tuple containing two quantum regsiters, the first one being the control and
+        the second one being the target.
+
+
+        Note that for now this method only works if the target qubit is not in superposition,
+        """
+        N = self.n_qubits
+        qubits = self.qubits
+
+        for i in range(N-1, 0, -1):
+            max_index = 2**i
+            indexes = np.argwhere(qubits)
+
+            # Check to see if any element are above the max index
+            filter = indexes >= max_index
+            filtered_indexes = indexes[filter]
+
+            # If there are no indexes below the max index, then algorithm is done
+            if filtered_indexes.size == 0:
+                # return first 2 elements of qubit array and create new quantum register
+                target_qubits = qubits[:2]
+                target_register = QuantumRegister()
+                target_register.qubits = target_qubits
+
+                # Add return statement here
+                return target_register
+            else:
+                # Roll the qubits array by 2**i
+                qubits = np.roll(qubits, -max_index)
+
+                if i == 1:
+                    target_qubits = qubits[:2]
+                    target_register = QuantumRegister(isempty=True)
+                    target_register.qubits = target_qubits
+
+                    return target_register
+
+
+
 
     def normalise(self):
         """
         Normalise coefficients of qubits array
         """
-       
         qubits_normalised = self.qubits/norm(self.qubits)
         self.qubits = qubits_normalised
 
-    def print_ket_bin(self, QR):
+
+    def __getitem__(self, key):
         """
-        prints quantum register in ket notation in binary form
+        Override of the [] operator to return a "subregister" of the current quantum reigster. The method checks first
+        to see whether the subregister desired contains entangled qubits or not, and raises an error if it does. The
+        condition to check whether a subregister is entangled or not is that non zero elelents of the corresponding
+        array must all be either in odd or even indexes.
+        :param slice: qubit number
+        :return: subregister as defined by slice
         """
-        N = len(QR)
-        n = np.log2(N)
-        for i in range(N):
-            x = np.binary_repr(i)
-            print(str(QR[i])+'|',x,'>')
+
+        #Length of new quantum register:
+        if key.start == None:
+            l = 1
+        else :
+            l = key.stop - key.start
+
+        # Extract the qubits
+        qubits = self.qubits
 
 
-    def print_ket_int(self, QR):
-        """
-        prints quantum register in ket notation in integer form
-        """
-        N = len(QR)
-        n = np.log2(N)
-        for i in range(N):
-            print(str(QR[i])+'|',i,'>')
+        # Check to see if the sliced qubits are enatngled or not.
 
-    def select(self, a, b):
-        """
-        Return quantum register with comprising of the ath to bth qubitsclass Operator():
+        pass
+
+class Operator():
     """
     Class that defines a quantum mechanical operator. The operator is
     a matrix. Only non zero elements are saved in a list of triplets. For each
@@ -294,32 +348,6 @@ class QuantumRegister():
 
         return herm_transpose
 
-    def __getitem__(self, key):
-        """
-        Override of the [] operator to return a "subregister" of the current quantum reigster. The method checks first
-        to see whether the subregister desired contains entangled qubits or not, and raises an error if it does. The
-        condition to check whether a subregister is entangled or not is that non zero elelents of the corresponding
-        array must all be either in odd or even indexes.
-        :param slice: qubit number
-        :return: subregister as defined by slice
-        """
-
-        #Length of new quantum register:
-        if key.start == None:
-            l = 1
-        else :
-            l = key.stop - key.start
-
-        # Extract the qubits
-        qubits = self.qubits
-
-
-        # Check to see if the sliced qubits are enatngled or not.
-
-
-        pass
-
-
 class Hadamard(Operator):
     """
     Class that defines hadamard gate. This class extends the Operator class. For
@@ -414,7 +442,6 @@ class CUGate(Operator):
 
         return result
 
-
 class fGate(Operator):
     """
     Class that implements the Uf operator, where f is a black box function f : {0,1}^n -> {0,1}, such that
@@ -462,10 +489,6 @@ class fGate(Operator):
 
         return result
 
-
-
-
-
 class CHadamard(Operator):
     """
     Class that defines controlled hadamard gate. Takes as inputs number of control
@@ -508,18 +531,15 @@ class CHadamard(Operator):
 
         return controlled_hadamard
 
-
 class ControlNot(CUGate):
     def __init__(self, n_control=1, n_target=1):
         self.base = Not()
         super(ControlNot, self).__init__(self.base, n_control, n_target)
 
-        
 class Toffoli(Operator):
     def __init__(self):
         pass
-    
-        
+
 class Oracle(Operator):
     """
     Class that implements the oracle. This gate takes an n qubits as
