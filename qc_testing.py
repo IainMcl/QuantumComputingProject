@@ -299,23 +299,23 @@ class Operator():
         (assuming they have the same size) gives the correct result.
         """
         if isinstance(rhs, QuantumRegister):
-            #Apply operator to quantum register
-            #check if number of states is the same
+            # Apply operator to quantum register
+            # check if number of states is the same
             if rhs.n_qubits != self.n_qubits:
                 raise ValueError('Number of states do not correspnd: rhs.n_qubits = {}, lhs.n_qubits = {}'.format(rhs.n_qubits,self.n_qubits))
 
-            #Otherwise return a new quantum register
+            # Otherwise return a new quantum register
             result = QuantumRegister(rhs.n_qubits)
 
-            #Calculate result. Check if matrix is sparse or not first. If sparse
-            #use special sparse dot product csc_matrix.dot
+            # Calculate result. Check if matrix is sparse or not first. If sparse
+            # use special sparse dot product csc_matrix.dot
             if isinstance(self.matrix, np.ndarray):
                 result.qubits = np.dot(self.matrix, rhs.qubits )
 
             elif isinstance(self.matrix, csc_matrix):
                 result.qubits = self.matrix.dot(rhs.qubits)
 
-            #Normalise result
+            # Normalise result
             result.normalise()
             return result
 
@@ -338,7 +338,7 @@ class Operator():
         Override mod operator to defint tensor product between operators
         """
         #Tensor product between the two operators
-        result = Operator(self.n_qubits, other.n_qubits)
+        result = Operator(self.n_qubits + other.n_qubits)
         result.matrix = kron(self.matrix, other.matrix)
         return result
 
@@ -385,34 +385,10 @@ class Not(Operator):
         self.base = np.array( [ [0,1], [1,0] ])
         super(Not, self).__init__(n_qubits, self.base)
 
-class Unitary(Operator):
-    """
-    unitary gate
-    """
-    def __init__(self, theta, phi, n_qubits = 1):
-        self.base = np.array([[np.cos(theta), np.sin(theta)*-1j*np.exp( -1j*phi )], [np.sin(theta)*-1j*np.exp( -1j*phi ), np.cos(theta)]])
-        super(Unitary, self).__init__(n_qubits, self.base)
-
-    
-def apply_U(Operator, QR, U, m, n=-1):#untested <------
-    """
-    applies 2by2 matrix 'U' onto specifiec places in a quantum regester 'QR'
-    does not construct matrix, possibnly more efficent for large number of qubits
-    would require diffrent matrix multiplication that holds the order of
-    application then applies in that order when used
-    """
-    if n == -1:
-        n = m + 1
-    QR[m] = QR[m]*U[0,0] + QR[n]*U[0,1]
-    QR[m+1] = QR[m]*U[1,0] + QR[n]*U[1,1]
-    return QR
-
-
 class CUGate(Operator):
     """
     Class that implements a controlled U gate
     """
-
     def __init__(self, base, n_control=1, n_target=1, num_of_i=0):
         """
         Class accepts the base matrix U, number of control qubits and number of
@@ -465,8 +441,6 @@ class CUGate(Operator):
 
             return c_gate
 
-
-
     def apply(self, control, target):
         """
         Applies the "V" gate to the target register according to the values in the control register
@@ -489,7 +463,6 @@ class fGate(Operator):
     Class that implements the Uf operator, where f is a black box function f : {0,1}^n -> {0,1}, such that
     Uf|x>|y> -> |x>|(y + f(x))(mod2)>
     """
-
     def __init__(self, n_control, f):
         """
         Class constructor
@@ -536,7 +509,6 @@ class Oracle(Operator):
     Class that implements the oracle. This gate takes an n qubits as
     input and flips it if f(x) = 1, otherwise it leaves it as the same.
     """
-
     def __init__(self, n_qubits=1, x=0):
         """
         Class constructor.
@@ -549,3 +521,36 @@ class Oracle(Operator):
         #Operator matrix will be identity with a -1 if the xth,xth element
         self.matrix = identity(self.n_states, format='csc')
         self.matrix[x, x] = -1
+
+
+def build_c_c_gate(u_gate):
+    """
+    Builds a c**2-UGate.
+    :param u_gate: Operator -> Single qubit gate
+    :return: 3 qubit gate
+    """
+    control_u1 = CUGate(u_gate, num_of_i=1)
+    control_u2 = CUGate(u_gate)
+    control_not = CUGate(Not())
+    I = Operator(base=np.eye(2, 2))
+
+    cc_u_gate = (I % control_u2) * (control_not % I) * (I % control_u2) * (control_not % I) * control_u1
+
+    return cc_u_gate
+
+
+def apply_U(Operator, QR, U, m, n=-1):#untested <------
+    """
+    applies 2by2 matrix 'U' onto specifiec places in a quantum regester 'QR'
+    does not construct matrix, possibnly more efficent for large number of qubits
+    would require diffrent matrix multiplication that holds the order of
+    application then applies in that order when used
+    """
+    if n == -1:
+        n = m + 1
+    QR[m] = QR[m]*U[0,0] + QR[n]*U[0,1]
+    QR[m+1] = QR[m]*U[1,0] + QR[n]*U[1,1]
+    return QR
+
+
+
