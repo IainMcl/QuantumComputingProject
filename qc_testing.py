@@ -381,6 +381,21 @@ class Unitary(Operator):
         self.base = np.array([[np.cos(theta), np.sin(theta)*-1j*np.exp( -1j*phi )], [np.sin(theta)*-1j*np.exp( -1j*phi ), np.cos(theta)]])
         super(Unitary, self).__init__(n_qubits, self.base)
 
+    
+class apply_U(Operator, QR, U, m, n=-1):#untested <------
+    """
+    applies 2by2 matrix 'U' onto specifiec places in a quantum regester 'QR'
+    does not construct matrix, possibnly more efficent for large number of qubits
+    would require diffrent matrix multiplication that holds the order of
+    application then applies in that order when used
+    """
+    if n == -1:
+        n = m + 1
+    QR[m] = QR[m]*U[0,0] + QR[n]*U[0,1]
+    QR[m+1] = QR[m]*U[1,0] + QR[n]*U[1,1]
+    return QR
+
+
 class CUGate(Operator):
     """
     Class that implements a controlled U gate
