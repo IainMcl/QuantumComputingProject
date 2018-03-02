@@ -41,7 +41,7 @@ as Operator class objects. Quantum circuits can be defined as functions that
 
 import numpy as np
 from numpy.linalg import norm
-from scipy.sparse import coo_matrix, csc_matrix, lil_matrix, identity,kron
+from scipy.sparse import coo_matrix, csc_matrix, lil_matrix, identity, kron
 from math import pi
 
 class QuantumRegister:
@@ -65,17 +65,6 @@ class QuantumRegister:
         # If isempty = False, initialise in ground state
         if not isempty:
             self.qubits[0] = 1.0
-
-
-
-    def set_qubit(self, a, b):
-        """
-        Set qubit of state a to value b. Not sure how to do this right now.
-        Maybe instead of having a method, an extra argument can be passed to
-        the class constructor telling it in which states we wish our state
-        function to be...
-        """
-        pass
 
 
 
@@ -206,8 +195,12 @@ class QuantumRegister:
 
                     return target_register
 
-
-
+    def return_target(self):
+        """
+        Returns target register. To be used after the application of a control gate to
+        "untensor" the register.
+        :return:
+        """
 
     def normalise(self):
         """
@@ -219,7 +212,7 @@ class QuantumRegister:
 
     def __getitem__(self, key):
         """
-        Override of the [] operator to return a "subregister" of the current quantum reigster. The method checks first
+        Override of the [] operator to return a "subregister" of the current quantum register. The method checks first
         to see whether the subregister desired contains entangled qubits or not, and raises an error if it does. The
         condition to check whether a subregister is entangled or not is that non zero elelents of the corresponding
         array must all be either in odd or even indexes.
@@ -254,7 +247,7 @@ class Operator():
     gates will be saved as sparse matrices.
     """
 
-    def __init__(self, n_qubits, base=np.zeros( (2,2) ) ):
+    def __init__(self, n_qubits=1, base=np.zeros( (2,2) ) ):
         """
         Class initialiser. The class accepts two inputs:
             -n_qubits: Number of qubits on which this operator will operate.
@@ -337,6 +330,13 @@ class Operator():
         result.matrix = kron(self.matrix, other.matrix)
         return result
 
+    def __str__(self):
+        """
+        Override __str__ method and print out the gate
+        :return: rep -> print out of numpy array
+        """
+        return self.matrix.toarray().__str__()
+
 
     def dag(self):
         """
@@ -401,7 +401,7 @@ class CUGate(Operator):
     Class that implements a controlled U gate
     """
 
-    def __init__(self, base, n_control, n_target=1):
+    def __init__(self, base, n_control=1, n_target=1, num_of_i=0):
         """
         Class accepts the base matrix U, number of control qubits and number of
         target qubits.
@@ -409,11 +409,14 @@ class CUGate(Operator):
         base: matrix/operator
         n_control: number of control qubits
         n_target: number of target qubits (has been set to 1 as default)
+        n_I: integer, number of I operators between the control register and the target
+        register.
         """
         self.n_control = n_control
         self.n_target = n_target
         self.n_qubits = self.n_target + self.n_control
-        self.size = 2**(self.n_control + self.n_target)
+        self.size = 2**(self.n_control + self.n_target + num_of_i)
+        self.num_of_i = num_of_i
         self.matrix = self.__create_sparse_matrix(base)
 
     def __create_sparse_matrix(self, base):
@@ -430,15 +433,27 @@ class CUGate(Operator):
         #Create full sparse identity matrix
         sparse_matrix = identity(self.size, format='lil')
 
-        #"Put" dense hadamard matrix in sparse matrix
-        target_states = 2**self.n_target
-        sub_matrix_index = self.size-target_states
-        sparse_matrix[sub_matrix_index: , sub_matrix_index: ] = base_matrix
+        if self.num_of_i == 0:
+            #"Put" dense hadamard matrix in sparse matrix
+            target_states = 2**self.n_target
+            sub_matrix_index = self.size-target_states
+            sparse_matrix[sub_matrix_index: , sub_matrix_index: ] = base_matrix
 
-        #Convert to csc format
-        c_gate = csc_matrix(sparse_matrix)
+            #Convert to csc format
+            c_gate = csc_matrix(sparse_matrix)
 
-        return c_gate
+            return c_gate
+        else:
+            # Put sub matrix in corner of big matrix
+            i_sparse = identity(2**self.num_of_i, format='lil')
+            bottom_right_quarter = kron(i_sparse, base.matrix)
+
+            sparse_matrix[int(self.size/2) : , int(self.size/2): ] = bottom_right_quarter
+            c_gate = csc_matrix(sparse_matrix)
+
+            return c_gate
+
+
 
     def apply(self, control, target):
         """
@@ -504,57 +519,6 @@ class fGate(Operator):
 
         return result
 
-class CHadamard(Operator):
-    """
-    Class that defines controlled hadamard gate. Takes as inputs number of control
-    qubits and number of target qubits. And builds a sparse matrix.
-    ############################
-    This class may not be necessary anymore
-    ###########################
-    """
-
-    def __init__(self, n_control, n_target):
-
-        self.n_control = n_control
-        self.n_target = n_target
-        self.n_qubits= self.n_target + self.n_control
-        self.size = 2**(n_control+n_target)
-        self.matrix = self.__create_sparse_matrix()
-
-
-    def __create_sparse_matrix(self):
-        """
-        Creates spasrse matrix according to how many target qubits we have.
-        Matrix is constructed using the 'lil' format, which is better for
-        incremental construction of sparse matrices and is then converted
-        to 'csc' format, which is better for operations between matrices
-        """
-
-        #Create sparse hadamard matrix
-        hadamard_matrix = lil_matrix( Hadamard(self.n_target).matrix )
-
-        #Create full sparse identity matrix
-        sparse_matrix = identity(self.size, format='lil')
-
-        #"Put" dense hadamard matrix in sparse matrix
-        target_states = 2**self.n_target
-        sub_matrix_index = self.size-target_states
-        sparse_matrix[sub_matrix_index: , sub_matrix_index: ] = hadamard_matrix
-
-        #Convert to csc format
-        controlled_hadamard = csc_matrix(sparse_matrix)
-
-        return controlled_hadamard
-
-class ControlNot(CUGate):
-    def __init__(self, n_control=1, n_target=1):
-        self.base = Not()
-        super(ControlNot, self).__init__(self.base, n_control, n_target)
-
-class Toffoli(Operator):
-    def __init__(self):
-        pass
-
 class Oracle(Operator):
     """
     Class that implements the oracle. This gate takes an n qubits as
@@ -573,59 +537,3 @@ class Oracle(Operator):
         #Operator matrix will be identity with a -1 if the xth,xth element
         self.matrix = identity(self.n_states, format='csc')
         self.matrix[x, x] = -1
-
-
-########testing stuff##############
-if __name__ == '__main__':
-    #Create 2 qubit hadamard gate
-    H2 = Hadamard(2)
-
-    #Create 2 qubit quantum register in ground state
-    target2 = QuantumRegister(2)
-
-    #Apply hadamard gate to target state
-    H2 = Hadamard(2)
-    result_1 = H2*target2
-    #Print result
-    print(result_1.qubits)
-
-    #Define control qubit and apply hadamard to it
-    control1 = QuantumRegister(1)
-    control1_superposition = Hadamard(1)*control1
-
-    #Print result
-    print(control1_superposition.qubits)
-
-    #Define controlled hadamard gate with 1 control and 2 targets
-    c_H = CHadamard(1,2)
-    h1 = Hadamard()
-    print(h1.matrix)
-    c_u = CUGate(h1,2)
-
-    print(c_u.matrix.toarray())
-
-    #Create new quantum register with control and target qubits
-    control_target = control1_superposition*target2
-
-    #Print new quantum register
-    print(control_target.qubits)
-
-    #Apply controlled hadamard gate to this quantum register
-    print(control_target.n_states )
-    result = c_H*control_target
-
-    #Print result
-    print(result.qubits)
-
-    I = Operator(2, np.eye(2))
-    print(I.matrix.toarray())
-
-    #Testing oracle operator
-    qubit1 = Hadamard(3) * QuantumRegister(3)
-    oracle = Oracle(3,2)
-    
-    #wooo it works
-    print((oracle*qubit1).qubits)
-    
-    #check unitarty
-    print(Unitary(pi,0).base)
