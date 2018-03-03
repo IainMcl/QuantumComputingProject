@@ -522,7 +522,6 @@ class Oracle(Operator):
         self.matrix = identity(self.n_states, format='csc')
         self.matrix[x, x] = -1
 
-
 def build_c_c_gate(u_gate):
     """
     Builds a c**2-UGate.
@@ -539,18 +538,18 @@ def build_c_c_gate(u_gate):
     return cc_u_gate
 
 
-def apply_U(Operator, QR, U, m, n=-1):#untested <------
-    """
-    applies 2by2 matrix 'U' onto specifiec places in a quantum regester 'QR'
-    does not construct matrix, possibnly more efficent for large number of qubits
-    would require diffrent matrix multiplication that holds the order of
-    application then applies in that order when used
-    """
-    if n == -1:
-        n = m + 1
-    QR[m] = QR[m]*U[0,0] + QR[n]*U[0,1]
-    QR[m+1] = QR[m]*U[1,0] + QR[n]*U[1,1]
-    return QR
+# def apply_U(Operator, QR, U, m, n=-1):#untested <------
+#     """
+#     applies 2by2 matrix 'U' onto specifiec places in a quantum regester 'QR'
+#     does not construct matrix, possibnly more efficent for large number of qubits
+#     would require diffrent matrix multiplication that holds the order of
+#     application then applies in that order when used
+#     """
+#     if n == -1:
+#         n = m + 1
+#     QR[m] = QR[m]*U[0,0] + QR[n]*U[0,1]
+#     QR[m+1] = QR[m]*U[1,0] + QR[n]*U[1,1]
+#     return QR
 
 
 
