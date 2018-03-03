@@ -7,8 +7,8 @@ Created on Mon Feb 19 13:29:09 2018
 import unittest
 import numpy as np
 import math
-from qc_testing import *
-from functions import *
+from qc_simulator.qc_testing import *
+from qc_simulator.functions import *
 
 class QCTesting(unittest.TestCase):
     def test_mul_Hadamard(self):
@@ -16,7 +16,7 @@ class QCTesting(unittest.TestCase):
         H = Hadamard()
         applied = np.asmatrix((H*reg1).qubits)
         H_test = 1/math.sqrt(2)*np.matrix([[1,1],[1,-1]])
-        expected = np.dot(H_test,reg1.qubits)
+        expected = np.dot(H_test, reg1.base_states)
         np.testing.assert_almost_equal(expected.tolist(),applied.tolist())
 
 
@@ -32,10 +32,10 @@ class QCTesting(unittest.TestCase):
         O = Oracle(10,x=5)
         reg = QuantumRegister(10)
         result = O*reg
-        self.assertEqual(result.qubits[5],-1*reg.qubits[5])
-        for i in range(reg.qubits.size):
+        self.assertEqual(result.qubits[5], -1 * reg.base_states[5])
+        for i in range(reg.base_states.size):
             if i != 5:
-                self.assertEqual(result.qubits[i], reg.qubits[i])
+                self.assertEqual(result.qubits[i], reg.base_states[i])
                 
                 
     def test_phase_shift(self):
@@ -69,7 +69,7 @@ class QCTesting(unittest.TestCase):
         
     def testControlV(self):
         reg = QuantumRegister(1)
-        reg.qubits = np.array([1,1])
+        reg.base_states = np.array([1, 1])
         result = ControlV(1)*reg
 #        expected = reg
         expected.qubits[-1] *= 1j

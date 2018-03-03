@@ -61,10 +61,10 @@ class QuantumRegister:
         """
         self.n_states = int(2 ** n_qubits)
         self.n_qubits = n_qubits
-        self.qubits = np.zeros(self.n_states, dtype=complex)
+        self.base_states = np.zeros(self.n_states, dtype=complex)
         # If isempty = False, initialise in ground state
         if not isempty:
-            self.qubits[0] = 1.0
+            self.base_states[0] = 1.0
 
 
 
@@ -76,7 +76,7 @@ class QuantumRegister:
         # Calculate probabilities
         probabilities = np.zeros(self.n_states)
         for i in range(self.n_states):
-                probabilities[i] = norm( self.qubits[i] )**2
+                probabilities[i] = norm(self.base_states[i]) ** 2
 
         # Choose a random state
         n = int(self.n_states)
@@ -90,14 +90,14 @@ class QuantumRegister:
         register.
         """
         # Result is tensor product of the qubits in each state
-        temp_result = np.kron(self.qubits, other.qubits)
+        temp_result = np.kron(self.base_states, other.qubits)
 
         # Result has to be normalized
         result_normalized = temp_result/norm(temp_result)
 
         # Create quantum register object for result
         qmr_result = QuantumRegister(self.n_qubits+other.n_qubits )
-        qmr_result.qubits = result_normalized
+        qmr_result.base_states = result_normalized
 
         return qmr_result
 
@@ -118,7 +118,7 @@ class QuantumRegister:
 
         # Define new quantum register and add the qubits
         result = QuantumRegister(self.n_qubits)
-        result.qubits = self.qubits + other.qubits
+        result.base_states = self.base_states + other.qubits
 
         # Normalise and return
         #result.normalise()
@@ -130,18 +130,18 @@ class QuantumRegister:
         Overrides str method to print out quantum register in braket notation
         :return: rep : string reply
         """
-        qubits = self.qubits
-        l = len(qubits)
+        base_states = self.base_states
+        l = len(base_states)
         n_qubits = self.n_qubits
-        if qubits[0] != 0:
-            rep = '({0:+.2f})'.format(qubits[0]) + "*|" + np.binary_repr(0, n_qubits) + "> "
+        if base_states[0] != 0:
+            rep = '({0:+.2f})'.format(base_states[0]) + "*|" + np.binary_repr(0, n_qubits) + "> "
         else:
             rep = ''
 
         for i in range(1, l):
-            if qubits[i] == 0:
+            if base_states[i] == 0:
                 continue
-            rep = rep + '({0:+.2f})'.format(qubits[i]) + "*|" + np.binary_repr(i, n_qubits) + "> "
+            rep = rep + '({0:+.2f})'.format(base_states[i]) + "*|" + np.binary_repr(i, n_qubits) + "> "
 
         return rep
 
@@ -151,7 +151,7 @@ class QuantumRegister:
         Implements + n (mod2^n_states) by rolling the qubit array by n.
         :param n: number of shifts
         """
-        self.qubits = np.roll(self.qubits, n)
+        self.base_states = np.roll(self.base_states, n)
 
     def split(self):
         """
@@ -165,11 +165,11 @@ class QuantumRegister:
         Note that for now this method only works if the target qubit is not in superposition,
         """
         N = self.n_qubits
-        qubits = self.qubits
+        base_states = self.base_states
 
         for i in range(N-1, 0, -1):
             max_index = 2**i
-            indexes = np.argwhere(qubits)
+            indexes = np.argwhere(base_states)
 
             # Check to see if any element are above the max index
             filter = indexes >= max_index
@@ -178,20 +178,20 @@ class QuantumRegister:
             # If there are no indexes below the max index, then algorithm is done
             if filtered_indexes.size == 0:
                 # return first 2 elements of qubit array and create new quantum register
-                target_qubits = qubits[:2]
+                target_base_states = base_states[:2]
                 target_register = QuantumRegister()
-                target_register.qubits = target_qubits
+                target_register.base_states = target_base_states
 
                 # Add return statement here
                 return target_register
             else:
                 # Roll the qubits array by 2**i
-                qubits = np.roll(qubits, -max_index)
+                base_states = np.roll(base_states, -max_index)
 
                 if i == 1:
-                    target_qubits = qubits[:2]
+                    target_base_states = base_states[:2]
                     target_register = QuantumRegister(isempty=True)
-                    target_register.qubits = target_qubits
+                    target_register.base_states = target_base_states
 
                     return target_register
 
@@ -204,9 +204,9 @@ class QuantumRegister:
         """
 
         # Remove every second element of the base state array. Then divide every element by a
-        base_states = self.qubits
+        base_states = self.base_states
         new_base_state = base_states[::2]/a
-        self.qubits = new_base_state
+        self.base_states = new_base_state
         self.n_qubits = self.n_qubits - 1
         self.n_states = self.n_states/2
 
@@ -218,8 +218,8 @@ class QuantumRegister:
         """
         Normalise coefficients of qubits array
         """
-        qubits_normalised = self.qubits/norm(self.qubits)
-        self.qubits = qubits_normalised
+        qubits_normalised = self.base_states / norm(self.base_states)
+        self.base_states = qubits_normalised
 
 
     def __getitem__(self, key):
@@ -239,7 +239,7 @@ class QuantumRegister:
             l = key.stop - key.start
 
         # Extract the qubits
-        qubits = self.qubits
+        qubits = self.base_states
 
 
         # Check to see if the sliced qubits are enatngled or not.
@@ -310,10 +310,10 @@ class Operator():
             # Calculate result. Check if matrix is sparse or not first. If sparse
             # use special sparse dot product csc_matrix.dot
             if isinstance(self.matrix, np.ndarray):
-                result.qubits = np.dot(self.matrix, rhs.qubits )
+                result.base_states = np.dot(self.matrix, rhs.base_states)
 
             elif isinstance(self.matrix, csc_matrix):
-                result.qubits = self.matrix.dot(rhs.qubits)
+                result.base_states = self.matrix.dot(rhs.base_states)
 
             # Normalise result
             result.normalise()

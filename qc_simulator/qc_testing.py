@@ -324,9 +324,9 @@ class Operator():
             Matrix multiplication between the two operators
             """
             if rhs.size != self.size:
-                raise ValueError('Operators must of of the same size: rhs.size = {} lhs.size = {} '.format(rhs.size,self.size))
+                raise ValueError('Operators must be of the same size: rhs.size = {} lhs.size = {} '.format(rhs.size,self.size))
 
-            #Otherwise take dot product of
+            # Take dot product of operator matrices
             result = Operator(self.n_qubits)
             result.matrix = self.matrix.dot(rhs.matrix)
 
@@ -533,9 +533,17 @@ def build_c_c_gate(u_gate):
     control_not = CUGate(Not())
     I = Operator(base=np.eye(2, 2))
 
-    cc_u_gate = (I % control_u2) * (control_not % I) * (I % control_u2) * (control_not % I) * control_u1
+    step1 = (control_not % I) * control_u1
+    step2 = (I % control_u2) * step1
+    step3 = (control_not % I) * step2
+    step4 = (I % control_u2) * step3
 
-    return cc_u_gate
+
+
+    # cc_u_gate = (I % control_u2) * (control_not % I) * (I % control_u2) * \
+    #             (control_not % I) * control_u1
+
+    return step4
 
 
 # def apply_U(Operator, QR, U, m, n=-1):#untested <------

@@ -5,8 +5,8 @@ Created on Mon Feb 26 17:37:45 2018
 @author: Lewis
 """
 
-from qc import *
-from functions import *
+from qc_simulator.qc import *
+from qc_simulator.functions import *
 import numpy as np
 from scipy.spatial import distance
 from sympy.utilities.iterables import multiset_permutations
