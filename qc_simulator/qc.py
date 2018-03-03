@@ -90,7 +90,7 @@ class QuantumRegister:
         register.
         """
         # Result is tensor product of the qubits in each state
-        temp_result = np.kron(self.base_states, other.qubits)
+        temp_result = np.kron(self.base_states, other.base_states)
 
         # Result has to be normalized
         result_normalized = temp_result/norm(temp_result)
