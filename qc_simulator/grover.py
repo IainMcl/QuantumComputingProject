@@ -1,5 +1,5 @@
-from qc import *
-from functions import *
+from qc_simulator.qc import *
+from qc_simulator.functions import *
 import numpy as np
 
 def grovers():
