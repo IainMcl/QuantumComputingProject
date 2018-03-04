@@ -43,6 +43,7 @@ import numpy as np
 from numpy.linalg import norm
 from scipy.sparse import coo_matrix, csc_matrix, lil_matrix, identity, kron
 from math import pi
+import matplotlib.pyplot as plt
 
 class QuantumRegister:
     """
@@ -245,6 +246,12 @@ class QuantumRegister:
         # Check to see if the sliced qubits are enatngled or not.
 
         pass
+    
+    def plot_register(self, show=True):
+        ax = plt.bar(np.arange(2**self.n_qubits),np.absolute(self.base_states))
+        if show:
+            plt.show()
+        return ax
 
 class Operator():
     """
@@ -543,7 +550,11 @@ def build_c_c_not():
 
     return toffoli
 
-
+q = QuantumRegister(4)
+H = Hadamard(4)
+print(q.base_states)
+#q = H*q
+q.plot_register(True)
 # def apply_U(Operator, QR, U, m, n=-1):#untested <------
 #     """
 #     applies 2by2 matrix 'U' onto specifiec places in a quantum regester 'QR'
