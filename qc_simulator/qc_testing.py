@@ -256,9 +256,11 @@ class QuantumRegister:
     
     def plot_bloch(self):
         b = Bloch()
-        
-        obj = Qobj(self.base_states)
-        b.add_states(obj)
+        objs = []
+        for i in range(self.n_qubits):
+            obj = Qobj(self.base_states[2*i:2*i+2])
+            objs.append(obj)
+        b.add_states(objs)
         b.show()
         
 
@@ -559,8 +561,12 @@ def build_c_c_not():
 
     return toffoli
 
-q = QuantumRegister()
-H = Hadamard()
+#test bloch stuff
+n=1
+q = QuantumRegister(n)
+H = Hadamard(n)
+N = Not(n)
+q = N*q
 q = H*q
 q.plot_bloch()
 # def apply_U(Operator, QR, U, m, n=-1):#untested <------
