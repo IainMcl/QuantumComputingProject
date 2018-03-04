@@ -44,6 +44,7 @@ from numpy.linalg import norm
 from scipy.sparse import coo_matrix, csc_matrix, lil_matrix, identity, kron
 from math import pi
 import matplotlib.pyplot as plt
+from qutip import *
 
 class QuantumRegister:
     """
@@ -252,6 +253,14 @@ class QuantumRegister:
         if show:
             plt.show()
         return ax
+    
+    def plot_bloch(self):
+        b = Bloch()
+        
+        obj = Qobj(self.base_states)
+        b.add_states(obj)
+        b.show()
+        
 
 class Operator():
     """
@@ -550,11 +559,10 @@ def build_c_c_not():
 
     return toffoli
 
-q = QuantumRegister(4)
-H = Hadamard(4)
-print(q.base_states)
-#q = H*q
-q.plot_register(True)
+q = QuantumRegister()
+H = Hadamard()
+q = H*q
+q.plot_bloch()
 # def apply_U(Operator, QR, U, m, n=-1):#untested <------
 #     """
 #     applies 2by2 matrix 'U' onto specifiec places in a quantum regester 'QR'
