@@ -279,7 +279,8 @@ class Operator():
         Create matrix by taking successive tensor producs between for the total
         number of qubits.
         """
-        result = lil_matrix(base)
+        base_complex = np.array(base, dtype=complex)
+        result = lil_matrix(base_complex)
 
         if n_qubits == 1 :
             result = csc_matrix(result)
@@ -415,13 +416,13 @@ class CUGate(Operator):
         base_matrix = lil_matrix(base.matrix)
 
         #Create full sparse identity matrix
-        sparse_matrix = identity(self.size, format='lil')
+        sparse_matrix = identity(self.size, format='lil', dtype=complex)
 
         if self.num_of_i == 0:
             #"Put" dense hadamard matrix in sparse matrix
             target_states = 2**self.n_target
             sub_matrix_index = self.size-target_states
-            sparse_matrix[sub_matrix_index: , sub_matrix_index: ] = base_matrix
+            sparse_matrix[sub_matrix_index:, sub_matrix_index:] = base_matrix
 
             #Convert to csc format
             c_gate = csc_matrix(sparse_matrix)
@@ -518,35 +519,27 @@ class Oracle(Operator):
         self.matrix = identity(self.n_states, format='csc')
         self.matrix[x, x] = -1
 
-def build_c_c_gate(u_gate):
+
+def build_c_c_not():
     """
     Builds a c**2-UGate.
     :param u_gate: Operator -> Single qubit gate
     :return: 3 qubit gate
     """
-    control_u1 = CUGate(u_gate, num_of_i=1)
-    control_u2 = CUGate(u_gate)
-    control_not = CUGate(Not())
+    h_gate = Hadamard()
     I = Operator(base=np.eye(2, 2))
+    v_gate = PhaseShift(np.pi/2)
+    control_v = CUGate(v_gate)
+    control_not = CUGate(Not())
+    v3 = v_gate * v_gate * v_gate
+    control_v3 = CUGate(v3)
+    c_I_v_gate = CUGate(v_gate, num_of_i=1)
 
-    step1 = (control_not % I) * control_u1
-    print(step1)
-    print("\n")
-    step2 = (I % control_u2) * step1
-    print(step2)
-    print("\n")
-    step3 = (control_not % I) * step2
-    print(step3)
-    print("\n")
-    step4 = (I % control_u2) * step3
-    print(step4)
-    print("\n")
+    # Build circuit
+    toffoli = (I % I % h_gate) * c_I_v_gate * (control_not % I) * (I % control_v3) * \
+              (control_not % I) * (I % control_v) * (I % I % h_gate)
 
-
-    cc_u_gate = (I % control_u2) * (control_not % I) * (I % control_u2) * (control_not % I) * control_u1
-
-    return cc_u_gate
-
+    return toffoli
 
 # def apply_U(Operator, QR, U, m, n=-1):#untested <------
 #     """

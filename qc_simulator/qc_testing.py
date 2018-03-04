@@ -522,20 +522,26 @@ class Oracle(Operator):
         self.matrix = identity(self.n_states, format='csc')
         self.matrix[x, x] = -1
 
-def build_c_c_gate(u_gate):
+def build_c_c_not():
     """
     Builds a c**2-UGate.
     :param u_gate: Operator -> Single qubit gate
     :return: 3 qubit gate
     """
-    control_u1 = CUGate(u_gate, num_of_i=1)
-    control_u2 = CUGate(u_gate)
+    h_gate = Hadamard()
+    I = Operator(np.eye(2,2))
+    v_gate = PhaseShift(np.pi)
+    control_v = CUGate(v_gate)
     control_not = CUGate(Not())
-    I = Operator(base=np.eye(2, 2))
+    v3 = v_gate * v_gate * v_gate
+    control_v3 = CUGate(v3)
+    c_I_v_gate = CUGate(v_gate, num_of_i=1)
 
-    cc_u_gate = (I % control_u2) * (control_not % I) * (I % control_u2) * (control_not % I) * control_u1
+    #Build circuit
+    toffoli = (I%I%h_gate) * c_I_v_gate * (control_not % I) * (I % control_v3) * \
+              (control_not % I ) * ( I % control_v) * (I % I % h_gate)
 
-    return cc_u_gate
+    return toffoli
 
 
 # def apply_U(Operator, QR, U, m, n=-1):#untested <------
