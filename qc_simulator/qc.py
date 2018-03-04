@@ -309,11 +309,7 @@ class Operator():
 
             # Calculate result. Check if matrix is sparse or not first. If sparse
             # use special sparse dot product csc_matrix.dot
-            if isinstance(self.matrix, np.ndarray):
-                result.base_states = np.dot(self.matrix, rhs.base_states)
-
-            elif isinstance(self.matrix, csc_matrix):
-                result.base_states = self.matrix.dot(rhs.base_states)
+            result.base_states = self.matrix.dot(rhs.base_states.transpose())
 
             # Normalise result
             result.normalise()
@@ -339,7 +335,7 @@ class Operator():
         """
         #Tensor product between the two operators
         result = Operator(self.n_qubits + other.n_qubits)
-        result.matrix = kron(self.matrix, other.matrix)
+        result.matrix = csc_matrix( kron(self.matrix, other.matrix) )
         return result
 
     def __str__(self):
@@ -532,6 +528,20 @@ def build_c_c_gate(u_gate):
     control_u2 = CUGate(u_gate)
     control_not = CUGate(Not())
     I = Operator(base=np.eye(2, 2))
+
+    step1 = (control_not % I) * control_u1
+    print(step1)
+    print("\n")
+    step2 = (I % control_u2) * step1
+    print(step2)
+    print("\n")
+    step3 = (control_not % I) * step2
+    print(step3)
+    print("\n")
+    step4 = (I % control_u2) * step3
+    print(step4)
+    print("\n")
+
 
     cc_u_gate = (I % control_u2) * (control_not % I) * (I % control_u2) * (control_not % I) * control_u1
 
