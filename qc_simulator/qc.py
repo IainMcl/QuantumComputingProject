@@ -44,6 +44,7 @@ from numpy.linalg import norm
 from scipy.sparse import coo_matrix, csc_matrix, lil_matrix, identity, kron
 from math import pi
 
+
 class QuantumRegister:
     """
     Quantum register class. The quantum register is saved as a complex
@@ -66,8 +67,6 @@ class QuantumRegister:
         if not isempty:
             self.base_states[0] = 1.0
 
-
-
     def measure(self):
         """
         Make a measurement. Square all the amplitudes and choose a random state.
@@ -76,7 +75,7 @@ class QuantumRegister:
         # Calculate probabilities
         probabilities = np.zeros(self.n_states)
         for i in range(self.n_states):
-                probabilities[i] = norm(self.base_states[i]) ** 2
+            probabilities[i] = norm(self.base_states[i]) ** 2
 
         # Choose a random state
         n = int(self.n_states)
@@ -93,10 +92,10 @@ class QuantumRegister:
         temp_result = np.kron(self.base_states, other.base_states)
 
         # Result has to be normalized
-        result_normalized = temp_result/norm(temp_result)
+        result_normalized = temp_result / norm(temp_result)
 
         # Create quantum register object for result
-        qmr_result = QuantumRegister(self.n_qubits+other.n_qubits )
+        qmr_result = QuantumRegister(self.n_qubits + other.n_qubits)
         qmr_result.base_states = result_normalized
 
         return qmr_result
@@ -113,7 +112,7 @@ class QuantumRegister:
         """
 
         # Check if registers have the same size, if not return error
-        if self.n_qubits != other.n_qubits :
+        if self.n_qubits != other.n_qubits:
             raise ValueError('Registers have the same size!')
 
         # Define new quantum register and add the qubits
@@ -121,7 +120,7 @@ class QuantumRegister:
         result.base_states = self.base_states + other.qubits
 
         # Normalise and return
-        #result.normalise()
+        # result.normalise()
 
         return result
 
@@ -145,7 +144,6 @@ class QuantumRegister:
 
         return rep
 
-
     def shift(self, n):
         """
         Implements + n (mod2^n_states) by rolling the qubit array by n.
@@ -167,8 +165,8 @@ class QuantumRegister:
         N = self.n_qubits
         base_states = self.base_states
 
-        for i in range(N-1, 0, -1):
-            max_index = 2**i
+        for i in range(N - 1, 0, -1):
+            max_index = 2 ** i
             indexes = np.argwhere(base_states)
 
             # Check to see if any element are above the max index
@@ -195,7 +193,6 @@ class QuantumRegister:
 
                     return target_register
 
-
     def remove_aux(self, a):
         """
         Removes auxillary qubit from quantum register
@@ -205,14 +202,10 @@ class QuantumRegister:
 
         # Remove every second element of the base state array. Then divide every element by a
         base_states = self.base_states
-        new_base_state = base_states[::2]/a
+        new_base_state = base_states[::2] / a
         self.base_states = new_base_state
-        self.n_qubits = self.n_qubits - 1
-        self.n_states = self.n_states/2
-
-
-
-
+        self.n_qubits = int( self.n_qubits - 1)
+        self.n_states = int( self.n_states / 2)
 
     def normalise(self):
         """
@@ -220,7 +213,6 @@ class QuantumRegister:
         """
         qubits_normalised = self.base_states / norm(self.base_states)
         self.base_states = qubits_normalised
-
 
     def __getitem__(self, key):
         """
@@ -232,19 +224,19 @@ class QuantumRegister:
         :return: subregister as defined by slice
         """
 
-        #Length of new quantum register:
+        # Length of new quantum register:
         if key.start == None:
             l = 1
-        else :
+        else:
             l = key.stop - key.start
 
         # Extract the qubits
         qubits = self.base_states
 
-
         # Check to see if the sliced qubits are enatngled or not.
 
         pass
+
 
 class Operator():
     """
@@ -259,7 +251,7 @@ class Operator():
     gates will be saved as sparse matrices.
     """
 
-    def __init__(self, n_qubits=1, base=np.zeros( (2,2) ) ):
+    def __init__(self, n_qubits=1, base=np.zeros((2, 2))):
         """
         Class initialiser. The class accepts two inputs:
             -n_qubits: Number of qubits on which this operator will operate.
@@ -269,12 +261,11 @@ class Operator():
         and that there is no need "native" binary operators (such as SWAP gate)]
         """
         self.n_qubits = n_qubits
-        self.size = 2**n_qubits
+        self.size = 2 ** n_qubits
         self.matrix = self.__create_full_matrix(self.n_qubits, base)
-        #self.sparce_matrix = coo_matrix(np.zeros( ( self.size, self.size) ) )  not sure that we need thsi right now
+        # self.sparce_matrix = coo_matrix(np.zeros( ( self.size, self.size) ) )  not sure that we need thsi right now
 
-
-    def __create_full_matrix(self,n_qubits, base):
+    def __create_full_matrix(self, n_qubits, base):
         """
         Create matrix by taking successive tensor producs between for the total
         number of qubits.
@@ -282,17 +273,16 @@ class Operator():
         base_complex = np.array(base, dtype=complex)
         result = lil_matrix(base_complex)
 
-        if n_qubits == 1 :
+        if n_qubits == 1:
             result = csc_matrix(result)
 
             return result
         else:
-            for i in range(n_qubits-1):
+            for i in range(n_qubits - 1):
                 result = kron(result, base)
 
             result = csc_matrix(result)
             return result
-
 
     def __mul__(self, rhs):
         """
@@ -303,7 +293,9 @@ class Operator():
             # Apply operator to quantum register
             # check if number of states is the same
             if rhs.n_qubits != self.n_qubits:
-                raise ValueError('Number of states do not correspnd: rhs.n_qubits = {}, lhs.n_qubits = {}'.format(rhs.n_qubits,self.n_qubits))
+                raise ValueError(
+                    'Number of states do not correspnd: rhs.n_qubits = {}, lhs.n_qubits = {}'.format(rhs.n_qubits,
+                                                                                                     self.n_qubits))
 
             # Otherwise return a new quantum register
             result = QuantumRegister(rhs.n_qubits)
@@ -321,22 +313,22 @@ class Operator():
             Matrix multiplication between the two operators
             """
             if rhs.size != self.size:
-                raise ValueError('Operators must of of the same size: rhs.size = {} lhs.size = {} '.format(rhs.size,self.size))
+                raise ValueError(
+                    'Operators must of of the same size: rhs.size = {} lhs.size = {} '.format(rhs.size, self.size))
 
-            #Otherwise take dot product of
+            # Otherwise take dot product of
             result = Operator(self.n_qubits)
             result.matrix = self.matrix.dot(rhs.matrix)
 
             return result
 
-
     def __mod__(self, other):
         """
         Override mod operator to defint tensor product between operators
         """
-        #Tensor product between the two operators
+        # Tensor product between the two operators
         result = Operator(self.n_qubits + other.n_qubits)
-        result.matrix = csc_matrix( kron(self.matrix, other.matrix) )
+        result.matrix = csc_matrix(kron(self.matrix, other.matrix))
         return result
 
     def __str__(self):
@@ -345,7 +337,6 @@ class Operator():
         :return: rep -> print out of numpy array
         """
         return self.matrix.toarray().__str__()
-
 
     def dag(self):
         """
@@ -357,35 +348,43 @@ class Operator():
 
         return herm_transpose
 
+
 class Hadamard(Operator):
     """
     Class that defines hadamard gate. This class extends the Operator class. For
     now it simply calls the parent classes and passes to it the base argument.
     """
+
     def __init__(self, n_qubits=1):
-        #Define "base" hadamard matrix for one qubit and correponding sparse matrix
-        self.base = 1/np.sqrt(2)*np.array( [ [1 , 1], [1 ,-1] ] )
-        super(Hadamard, self).__init__(n_qubits,self.base)
+        # Define "base" hadamard matrix for one qubit and correponding sparse matrix
+        self.base = 1 / np.sqrt(2) * np.array([[1, 1], [1, -1]])
+        super(Hadamard, self).__init__(n_qubits, self.base)
+
 
 class PhaseShift(Operator):
     """
     Implementation of phase shift gate.
     """
+
     def __init__(self, phi, n_qubits=1):
-        self.base = np.array( [ [ 1, 0], [ 0, np.exp( 1j*phi ) ] ])
+        self.base = np.array([[1, 0], [0, np.exp(1j * phi)]])
         super(PhaseShift, self).__init__(n_qubits, self.base)
+
 
 class Not(Operator):
     """Implements NOT gate
     """
+
     def __init__(self, n_qubits=1):
-        self.base = np.array( [ [0,1], [1,0] ])
+        self.base = np.array([[0, 1], [1, 0]])
         super(Not, self).__init__(n_qubits, self.base)
+
 
 class CUGate(Operator):
     """
     Class that implements a controlled U gate
     """
+
     def __init__(self, base, n_control=1, n_target=1, num_of_i=0):
         """
         Class accepts the base matrix U, number of control qubits and number of
@@ -400,7 +399,7 @@ class CUGate(Operator):
         self.n_control = n_control
         self.n_target = n_target
         self.n_qubits = self.n_target + self.n_control
-        self.size = 2**(self.n_control + self.n_target + num_of_i)
+        self.size = 2 ** (self.n_control + self.n_target + num_of_i)
         self.num_of_i = num_of_i
         self.matrix = self.__create_sparse_matrix(base)
 
@@ -412,28 +411,28 @@ class CUGate(Operator):
         to 'csc' format, which is better for operations between matrices
         """
 
-        #Create sparse hadamard matrix
+        # Create sparse hadamard matrix
         base_matrix = lil_matrix(base.matrix)
 
-        #Create full sparse identity matrix
+        # Create full sparse identity matrix
         sparse_matrix = identity(self.size, format='lil', dtype=complex)
 
         if self.num_of_i == 0:
-            #"Put" dense hadamard matrix in sparse matrix
-            target_states = 2**self.n_target
-            sub_matrix_index = self.size-target_states
+            # "Put" dense hadamard matrix in sparse matrix
+            target_states = 2 ** self.n_target
+            sub_matrix_index = self.size - target_states
             sparse_matrix[sub_matrix_index:, sub_matrix_index:] = base_matrix
 
-            #Convert to csc format
+            # Convert to csc format
             c_gate = csc_matrix(sparse_matrix)
 
             return c_gate
         else:
             # Put sub matrix in corner of big matrix
-            i_sparse = identity(2**self.num_of_i, format='lil')
+            i_sparse = identity(2 ** self.num_of_i, format='lil')
             bottom_right_quarter = kron(i_sparse, base.matrix)
 
-            sparse_matrix[int(self.size/2) : , int(self.size/2): ] = bottom_right_quarter
+            sparse_matrix[int(self.size / 2):, int(self.size / 2):] = bottom_right_quarter
             c_gate = csc_matrix(sparse_matrix)
 
             return c_gate
@@ -447,7 +446,7 @@ class CUGate(Operator):
         """
         result = QuantumRegister(target.n_qubits)
 
-        #Base is applied only if the last element of the qubits np array is non zero.
+        # Base is applied only if the last element of the qubits np array is non zero.
         if control.qubits[-1] != 0:
             result = self.base * target
         else:
@@ -455,11 +454,13 @@ class CUGate(Operator):
 
         return result
 
+
 class fGate(Operator):
     """
     Class that implements the Uf operator, where f is a black box function f : {0,1}^n -> {0,1}, such that
     Uf|x>|y> -> |x>|(y + f(x))(mod2)>
     """
+
     def __init__(self, n_control, f):
         """
         Class constructor
@@ -467,7 +468,7 @@ class fGate(Operator):
         :param f: callable black box function
         """
         self.f = f
-        #Not sure what to do about base matrix yet
+        # Not sure what to do about base matrix yet
         super(fGate, self).__init__(n_control + 1)
 
     def apply(self, control, target):
@@ -485,9 +486,9 @@ class fGate(Operator):
         control_qubits = control.qubits
         target_qubits = target.qubits
         result = QuantumRegister(target.n_qubits, isempty=True)
-        result_qubits = np.zeros(2**result.n_qubits, dtype=complex)
+        result_qubits = np.zeros(2 ** result.n_qubits, dtype=complex)
 
-        #Initialise not_gate
+        # Initialise not_gate
         n_gate = Not()
 
         for i in range(control.n_states):
@@ -496,16 +497,18 @@ class fGate(Operator):
             elif self.f(i) == 0 and control_qubits[i] != 0:
                 result = result + target
 
-        #normalise at the end
+        # normalise at the end
         result.normalise()
 
         return result
+
 
 class Oracle(Operator):
     """
     Class that implements the oracle. This gate takes an n qubits as
     input and flips it if f(x) = 1, otherwise it leaves it as the same.
     """
+
     def __init__(self, n_qubits=1, x=0):
         """
         Class constructor.
@@ -513,9 +516,9 @@ class Oracle(Operator):
         n_states: Total number of n_states
         x: state that is fliped.
         """
-        self.n_states = 2**n_qubits
+        self.n_states = 2 ** n_qubits
         self.n_qubits = n_qubits
-        #Operator matrix will be identity with a -1 if the xth,xth element
+        # Operator matrix will be identity with a -1 if the xth,xth element
         self.matrix = identity(self.n_states, format='csc')
         self.matrix[x, x] = -1
 
@@ -528,7 +531,7 @@ def build_c_c_not():
     """
     h_gate = Hadamard()
     I = Operator(base=np.eye(2, 2))
-    v_gate = PhaseShift(np.pi/2)
+    v_gate = PhaseShift(np.pi / 2)
     control_v = CUGate(v_gate)
     control_not = CUGate(Not())
     v3 = v_gate * v_gate * v_gate
@@ -553,6 +556,3 @@ def build_c_c_not():
 #     QR[m] = QR[m]*U[0,0] + QR[n]*U[0,1]
 #     QR[m+1] = QR[m]*U[1,0] + QR[n]*U[1,1]
 #     return QR
-
-
-
