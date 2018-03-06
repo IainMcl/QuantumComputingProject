@@ -454,6 +454,12 @@ class CUGate(Operator):
 
         return result
 
+class IdentityGate(Operator):
+    """
+    Identity operator.
+    """
+    def __init__(self, n_qubits = 1):
+        super(IdentityGate, self).__init__(n_qubits, base=np.eye(2,2))
 
 class fGate(Operator):
     """
@@ -523,36 +529,28 @@ class Oracle(Operator):
         self.matrix[x, x] = -1
 
 
-def build_c_c_not():
+def build_c_c_not(num_control_i=0, num_target_i=0):
     """
-    Builds a c**2-UGate.
-    :param u_gate: Operator -> Single qubit gate
-    :return: 3 qubit gate
+    Builds a toffoli gate, given the number of I operators between the second control and the target qubit from the
+    first control. By default these distances are set to 1 and 2 respectively.
+    :param num_control_i:
+    :param num_target_i:
+    :return: toffoli -> toffoli gate (Operator Object)
     """
+
+   # add statement that checks whether control2 <= target
+
     h_gate = Hadamard()
     I = Operator(base=np.eye(2, 2))
     v_gate = PhaseShift(np.pi / 2)
-    control_v = CUGate(v_gate)
-    control_not = CUGate(Not())
+    control_v = CUGate(v_gate, num_of_i=num_target_i - num_control_i)
+    control_not = CUGate(Not(), num_of_i=num_control_i)
     v3 = v_gate * v_gate * v_gate
-    control_v3 = CUGate(v3)
-    c_I_v_gate = CUGate(v_gate, num_of_i=1)
+    control_v3 = CUGate(v3, num_of_i=num_target_i - num_control_i)
+    c_I_v_gate = CUGate(v_gate, num_of_i=num_control_i + num_target_i + 1)
 
     # Build circuit
     toffoli = (I % I % h_gate) * c_I_v_gate * (control_not % I) * (I % control_v3) * \
               (control_not % I) * (I % control_v) * (I % I % h_gate)
 
     return toffoli
-
-# def apply_U(Operator, QR, U, m, n=-1):#untested <------
-#     """
-#     applies 2by2 matrix 'U' onto specifiec places in a quantum regester 'QR'
-#     does not construct matrix, possibnly more efficent for large number of qubits
-#     would require diffrent matrix multiplication that holds the order of
-#     application then applies in that order when used
-#     """
-#     if n == -1:
-#         n = m + 1
-#     QR[m] = QR[m]*U[0,0] + QR[n]*U[0,1]
-#     QR[m+1] = QR[m]*U[1,0] + QR[n]*U[1,1]
-#     return QR
