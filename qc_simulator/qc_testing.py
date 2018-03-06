@@ -254,13 +254,17 @@ class QuantumRegister:
             plt.show()
         return ax
     
-    def plot_bloch(self):
-        b = Bloch()
+    def plot_bloch(self, is3D=False):
+        if is3D:
+            b = Bloch3d()
+        else:
+            b = Bloch()
         objs = []
         for i in range(self.n_qubits):
             obj = Qobj(self.base_states[2*i:2*i+2])
+            b.add_states(obj)
             objs.append(obj)
-        b.add_states(objs)
+        #b.add_states(objs)
         b.show()
         
 
@@ -562,13 +566,13 @@ def build_c_c_not():
     return toffoli
 
 #test bloch stuff
-n=1
+n=2
 q = QuantumRegister(n)
 H = Hadamard(n)
 N = Not(n)
 q = N*q
-q = H*q
-q.plot_bloch()
+#q = H*q
+q.plot_bloch(is3D=False)
 # def apply_U(Operator, QR, U, m, n=-1):#untested <------
 #     """
 #     applies 2by2 matrix 'U' onto specifiec places in a quantum regester 'QR'
