@@ -89,7 +89,7 @@ def quantumAdder(a,b):
     Implements a quantum addition circuit using a C-Not and Toffili Gates
     Takes in 2 single qubit quantum registers as input
     returns a quantum register containing the sum of the values of the 2 input registers
-    
+
     currently implements the circuit but fails to return the right thing
     """
     x0 = QuantumRegister(a.n_qubits)
@@ -107,7 +107,7 @@ def quantumAdder(a,b):
 
 def GetQuBitofValue(theta, phi):
     """
-    Implements a setter circuit, setting the value of 
+    Implements a setter circuit, setting the value of
     """
     register = QuantumRegister()
     H = Hadamard()
@@ -132,7 +132,38 @@ def invert_average(quant_register):
 
     pass
 
+def oracle_single_tag(n, tag):
+        n_qubits=n+1
+        # Convert tag to binary string
+        bina_str=np.binary_repr(tag, n)
+        # Convert binary string to list of integers
+        binalist=[int(s) for s in bina_str]
+        # Reverse list as operators are applied in opposite order
+        binalist=binalist[::-1]
 
+        # Initiate base gates
+        not_gate = Not()
+        I = Operator(base=np.eye(2,2))
+
+        # Initiate the prep gate with if statement
+        '''
+        if binalist[0]==1:
+            prep_gate=I
+        elif binalist[0]==0:
+            prep_gate=not_gate
+        '''
+        prep_gate=I
+        # For loop to create whole gate
+        for i in binalist:
+            if i==1:
+                prep_gate= I % prep_gate
+            if i==0:
+                prep_gate= not_gate % prep_gate
+
+        cn_not = CUGate(not_gate, n_qubits-1)
+
+        oracle_gate=prep_gate*cn_not*prep_gate
+        return oracle_gate
 
 
 if __name__ == '__main__':

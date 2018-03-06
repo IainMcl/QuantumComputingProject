@@ -247,13 +247,13 @@ class QuantumRegister:
         # Check to see if the sliced qubits are enatngled or not.
 
         pass
-    
+
     def plot_register(self, show=True):
         ax = plt.bar(np.arange(2**self.n_qubits),np.absolute(self.base_states))
         if show:
             plt.show()
         return ax
-    
+
     def plot_bloch(self, is3D=False):
         if is3D:
             b = Bloch3d()
@@ -266,7 +266,7 @@ class QuantumRegister:
             objs.append(obj)
         #b.add_states(objs)
         b.show()
-        
+
 
 class Operator():
     """
@@ -566,13 +566,14 @@ def build_c_c_not():
     return toffoli
 
 #test bloch stuff
-n=2
-q = QuantumRegister(n)
-H = Hadamard(n)
-N = Not(n)
-q = N*q
-#q = H*q
-q.plot_bloch(is3D=False)
+if __name__ == '__main__':
+    n=2
+    q = QuantumRegister(n)
+    H = Hadamard(n)
+    N = Not(n)
+    q = N*q
+    #q = H*q
+    q.plot_bloch(is3D=False)
 # def apply_U(Operator, QR, U, m, n=-1):#untested <------
 #     """
 #     applies 2by2 matrix 'U' onto specifiec places in a quantum regester 'QR'
@@ -585,6 +586,3 @@ q.plot_bloch(is3D=False)
 #     QR[m] = QR[m]*U[0,0] + QR[n]*U[0,1]
 #     QR[m+1] = QR[m]*U[1,0] + QR[n]*U[1,1]
 #     return QR
-
-
-
