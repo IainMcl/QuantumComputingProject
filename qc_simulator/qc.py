@@ -41,7 +41,8 @@ as Operator class objects. Quantum circuits can be defined as functions that
 
 import numpy as np
 from numpy.linalg import norm
-from scipy.sparse import coo_matrix, csc_matrix, lil_matrix, identity, kron
+from scipy.sparse import identity as sparse_identity
+from scipy.sparse import coo_matrix, csc_matrix, lil_matrix, kron
 from math import pi
 import matplotlib.pyplot as plt
 from qutip import *
@@ -436,7 +437,7 @@ class CUGate(Operator):
         base_matrix = lil_matrix(base.matrix)
 
         # Create full sparse identity matrix
-        sparse_matrix = identity(self.size, format='lil', dtype=complex)
+        sparse_matrix = sparse_identity(self.size, dtype=complex, format='lil')
 
         if self.num_of_i == 0:
             # "Put" dense hadamard matrix in sparse matrix
