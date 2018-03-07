@@ -43,6 +43,7 @@ import numpy as np
 from numpy.linalg import norm
 from scipy.sparse import coo_matrix, csc_matrix, lil_matrix, identity, kron
 from math import pi
+import matplotlib.pyplot as plt
 
 
 class QuantumRegister:
@@ -236,6 +237,24 @@ class QuantumRegister:
         # Check to see if the sliced qubits are enatngled or not.
 
         pass
+    def plot_register(self, show=True):
+        ax = plt.bar(np.arange(2**self.n_qubits),np.absolute(self.base_states))
+        if show:
+            plt.show()
+        return ax
+
+    def plot_bloch(self, is3D=False):
+        if is3D:
+            b = Bloch3d()
+        else:
+            b = Bloch()
+        objs = []
+        for i in range(self.n_qubits):
+            obj = Qobj(self.base_states[2*i:2*i+2])
+            b.add_states(obj)
+            objs.append(obj)
+        #b.add_states(objs)
+        b.show()
 
 
 class Operator():
