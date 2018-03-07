@@ -44,6 +44,8 @@ from numpy.linalg import norm
 from scipy.sparse import coo_matrix, csc_matrix, lil_matrix, identity, kron
 from math import pi
 import matplotlib.pyplot as plt
+from qutip import *
+
 
 
 class QuantumRegister:
