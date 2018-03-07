@@ -13,18 +13,19 @@ class shors:
         I = IdentityGate()
         P = PhaseShift()
         for j in range(n):
-            if j = 0:
+            if j == 0:
                 M1 = IdentityGate(n-1)%H
-            if j = n-1:
+            elif j == n-1:
                 M1 = H%IdentityGate(n-1)
             else:
                 M1 = IdentityGate(j)%H%IdentityGate(n-1-j)
                 M2 = I
-            for i in rang(n-j):
+            for i in range(n-j):
                 M2 = M2%I
             for i in range(j):
                 M2 = P%M2
-            for j=0: #check about identity
+            if j==0: #check about identity
                 M = M2*M1
             else:
                 M = M2*M1*M
+print("hel")
