@@ -83,7 +83,7 @@ class QuantumRegister:
 
         # Choose a random state
         n = int(self.n_states)
-        state = np.random.choice(n, p=probabilities)
+        state =  int (np.random.choice(n, p=probabilities) ) 
 
         return state
 
