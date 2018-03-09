@@ -25,7 +25,8 @@ def grover_gen(oracle, k=1):
     not_gate = Not()
     h_gate = Hadamard()
     z = PhaseShift(np.pi)
-    control_z = CUGate(z, n_qubits-1)
+    # control_z = CUGate(z, n_qubits-1)
+    control_z = build_n_not(n_qubits-1)
     h_n_gate = Hadamard(n_qubits+1)
     not_n_gate = Not(n_qubits+1)
     I=IdentityGate()
@@ -68,14 +69,14 @@ def grover_gen(oracle, k=1):
 ## Main and testing###
 def main():
 
-    n=5
+    n=3
     oracle1=oracle_single_tag(n,1)
     oracle2=oracle_single_tag(n,5)
     #oracle3=oracle_single_tag(n,10)
     #oracle4=oracle_single_tag(n,15)
     #oracle=oracle1*oracle2*oracle3*oracle4
     oracle=oracle1*oracle2
-    n_runs = 5000
+    n_runs = 500
     results = np.zeros(n_runs, dtype=int)
     for i in range(n_runs):
         measurement=grover_gen(oracle1)

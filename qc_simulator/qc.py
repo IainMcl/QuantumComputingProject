@@ -83,7 +83,7 @@ class QuantumRegister:
 
         # Choose a random state
         n = int(self.n_states)
-        state =  int (np.random.choice(n, p=probabilities) ) 
+        state =  int (np.random.choice(n, p=probabilities) )
 
         return state
 
@@ -370,7 +370,6 @@ class Operator():
 
         return herm_transpose
 
-
 class Hadamard(Operator):
     """
     Class that defines hadamard gate. This class extends the Operator class. For
@@ -382,7 +381,6 @@ class Hadamard(Operator):
         self.base = 1 / np.sqrt(2) * np.array([[1, 1], [1, -1]])
         super(Hadamard, self).__init__(n_qubits, self.base)
 
-
 class PhaseShift(Operator):
     """
     Implementation of phase shift gate.
@@ -392,7 +390,6 @@ class PhaseShift(Operator):
         self.base = np.array([[1, 0], [0, np.exp(1j * phi)]])
         super(PhaseShift, self).__init__(n_qubits, self.base)
 
-
 class Not(Operator):
     """Implements NOT gate
     """
@@ -400,7 +397,6 @@ class Not(Operator):
     def __init__(self, n_qubits=1):
         self.base = np.array([[0, 1], [1, 0]])
         super(Not, self).__init__(n_qubits, self.base)
-
 
 class CUGate(Operator):
     """
@@ -451,7 +447,7 @@ class CUGate(Operator):
             return c_gate
         else:
             # Put sub matrix in corner of big matrix
-            i_sparse = identity(2 ** self.num_of_i, format='lil')
+            i_sparse = sparse_identity(2 ** self.num_of_i, format='lil')
             bottom_right_quarter = kron(i_sparse, base.matrix)
 
             sparse_matrix[int(self.size / 2):, int(self.size / 2):] = bottom_right_quarter
@@ -547,7 +543,7 @@ class Oracle(Operator):
         self.n_states = 2 ** n_qubits
         self.n_qubits = n_qubits
         # Operator matrix will be identity with a -1 if the xth,xth element
-        self.matrix = identity(self.n_states, format='csc')
+        self.matrix = sparse_identity(self.n_states, format='csc')
         self.matrix[x, x] = -1
 
 
@@ -563,7 +559,7 @@ def build_c_c_not(num_control_i=0, num_target_i=0):
    # add statement that checks whether control2 <= target
 
     h_gate = Hadamard()
-    I = Operator(base=np.eye(2, 2))
+    I = IdentityGate()
     v_gate = PhaseShift(np.pi / 2)
     control_v = CUGate(v_gate, num_of_i=num_target_i - num_control_i)
     control_not = CUGate(Not(), num_of_i=num_control_i)
