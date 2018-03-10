@@ -184,7 +184,6 @@ def build_n_not(n):
     n_qubits = n+1
 
 
-
     # Two cases, n is even and n odd
     # Num will be the number of gates necessary
     # If odd
@@ -194,7 +193,7 @@ def build_n_not(n):
         num_of_gates = n_qubits-1
 
     # Initiate the gates list
-    gates=np.empty(2 * num_of_gates - 1, dtype=Operator)
+    gates = np.empty(2 * num_of_gates - 1, dtype=Operator)
 
     # Define first column of gates
     gates[0] = c_c_not % IdentityGate(n_qubits-3)
@@ -203,7 +202,7 @@ def build_n_not(n):
     for i in range(1, num_of_gates-1):
 
         # Check if we are on an even or odd step
-        if n%2 == 0:
+        if num_of_gates%2 == 0:
             num_of_i_above = 2 * (i-1)
             num_of_i_below = n_qubits - num_of_i_above - 3
 
@@ -220,13 +219,16 @@ def build_n_not(n):
 
             gates[i] = I_above % not_gate % I_below
 
+
+
+
     # Define middle column of gates
     gates[num_of_gates-1] = IdentityGate(n_qubits-3) % c_c_not
 
     # Fill out the rest of the array
     gates[num_of_gates: ] = np.flip(gates[:num_of_gates-1], axis=0)
 
-    # Complete gate is the multiplication of evrything inside the array
+    # Complete gate is the multiplication of everything inside the array
     cn_gate = np.prod(gates)
 
     return cn_gate
@@ -234,32 +236,17 @@ def build_n_not(n):
 
 
 
-    if __name__ == '__main__':
-        hacky_cn = CUGate(Not(), 3)
-        normal_cn = build_n_not(3)
-
-        register = Not(4) * QuantumRegister(4)
-
-        #print(hacky_cn)
-
-        #print(normal_cn)
-
-        register1 = hacky_cn * register
-        register2 = normal_cn * register
-
-        print(register1)
-        print(register2)
-        print('/n')
-        print(register2.base_states)
-
-
-
 if __name__ == '__main__':
+    hacky_cn = CUGate(Not(), 4)
+    normal_cn = build_n_not(4)
 
-    #Create function
-    f = Operator(10, np.array( [ [1,0], [0,-1] ]))
+    register = Not(5) * QuantumRegister(5)
 
-    k = deutsch(f)
+    register1 = hacky_cn * register
+    register2 = normal_cn * register
 
-    #ITS ALIVE WOOOOOOOO
-    print(k)
+    print(register1)
+    print(register2)
+    print('/n')
+    print(register2.base_states)
+

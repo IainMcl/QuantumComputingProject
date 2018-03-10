@@ -3,6 +3,11 @@ from qc_simulator.functions import *
 import numpy as np
 import math
 
+register = Not(4) * QuantumRegister(4)
+test = build_n_not(3)
+register2= test * register
+print(register2)
+
 
 def grover(oracle, k=1):
     '''
@@ -25,7 +30,8 @@ def grover(oracle, k=1):
     not_gate = Not()
     h_gate = Hadamard()
     z = PhaseShift(np.pi)
-    control_z = CUGate(z, n_qubits-1)
+    # control_z = CUGate(z, n_qubits-1)
+    control_z = build_n_not(n_qubits-1)
     h_n_gate = Hadamard(n_qubits+1)
     not_n_gate = Not(n_qubits+1)
     I=IdentityGate()
@@ -77,10 +83,10 @@ if __name__=='__main__':
     #oracle4=oracle_single_tag(n,15)
     #oracle=oracle1*oracle2*oracle3*oracle4
     oracle=oracle1*oracle2
-    n_runs = 5000
+    n_runs = 50
     results = np.zeros(n_runs, dtype=int)
     for i in range(n_runs):
-        measurement=grover_gen(oracle1)
+        measurement=grover(oracle1)
         results[i] = measurement
 
     # Return number measured most often together with the accuracy
@@ -91,4 +97,3 @@ if __name__=='__main__':
     print('Grover search ran {} times.'.format(n_runs))
     print('Most likely state being tagged is {} with {}/100 confidence.'.format(target_state, accuracy))
 
-# add code to call parallel subrtoutine for grover
