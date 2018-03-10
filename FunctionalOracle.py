@@ -16,10 +16,11 @@ class FunctionalOracle(Operator):
         else:
             output = np.zeros(rhs.base_states.size,dtype=complex)
             for i in range(rhs.base_states.size):
-                output[i] = rhs.base_states[i]*self.function[i]
+                output[i] = -1*rhs.base_states[i]*self.function[i]-1*self.function[i]
+                output[i] +=1
                 
         outReg = QuantumRegister(self.n_qubits)
-        outReg.qubits = output
+        outReg.base_states = output
         return outReg
                 
                 
@@ -39,5 +40,12 @@ if __name__ == "__main__":
     q = H*q
     o = OracleFunction(10)
     f = FunctionalOracle(o,5)
+    o1 = oracle_single_tag(4, 2)
+    print("\n")
     out = f*q
-    print(out.qubits)
+    print(out) 
+    print("\n")
+    out1 =  o1*q
+    out1.remove_aux(1)
+    print(out1)
+    
