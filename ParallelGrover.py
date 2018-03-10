@@ -15,6 +15,7 @@ import numpy as np
 
 comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
+size = comm.Get_size()
 
 def run_grover_parallel(oracle, n_runs):
     """
@@ -30,4 +31,24 @@ def run_grover_parallel(oracle, n_runs):
 
 
 
-if __name__=='__main__':  
+
+if __name__=='__main__':
+
+    n_runs = 10
+
+    if rank == 0:
+        print('test')
+        results_total = np.zeros(n_runs)
+    else:
+        results_total = None
+
+    results_local = np.zeros( int(n_runs/size))
+
+    comm.Scatterv(results_total, results_local, root=0)
+
+    print('Rank {} has data: {}'.format(rank, results_local))
+    results_local = results_local + rank + 1
+    print('From process {}: {} '.format(rank, results_local))
+
+    comm.Gatherv(results_local, results_total, root=0)
+    print('From proces {}: Total data is: {}'.format(rank, results_total))

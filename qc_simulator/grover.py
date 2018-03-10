@@ -1,12 +1,7 @@
-from qc import *
-from functions import *
+from qc_simulator.qc import *
+from qc_simulator.functions import *
 import numpy as np
 import math
-
-register = Not(4) * QuantumRegister(4)
-test = build_n_not(3)
-register2= test * register
-print(register2)
 
 
 def grover(oracle, k=1):
@@ -30,8 +25,8 @@ def grover(oracle, k=1):
     not_gate = Not()
     h_gate = Hadamard()
     z = PhaseShift(np.pi)
-    control_z = CUGate(z, n_qubits-1)
-    #control_z = build_n_not(n_qubits-1)
+    #control_z = CUGate(z, n_qubits-1)
+    control_z = build_nc_z(n_qubits-1)
     h_n_gate = Hadamard(n_qubits+1)
     not_n_gate = Not(n_qubits+1)
     I=IdentityGate()

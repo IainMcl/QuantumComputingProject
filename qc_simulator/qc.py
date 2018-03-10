@@ -215,8 +215,14 @@ class QuantumRegister:
         """
         Normalise coefficients of qubits array
         """
-        qubits_normalised = self.base_states / norm(self.base_states)
-        self.base_states = qubits_normalised
+        # Add tolerance to remove extremely small floating point calculation errors
+        tol = 10 ** (-8)
+        filter = abs(self.base_states) >= tol
+        self.base_states = self.base_states * filter
+
+        base_states_normalised = self.base_states / norm(self.base_states)
+
+        self.base_states = base_states_normalised
 
     def __getitem__(self, key):
         """
