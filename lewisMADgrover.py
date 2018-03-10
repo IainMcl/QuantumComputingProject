@@ -67,14 +67,14 @@ class TSPOracle():
         locs = np.swapaxes(self.locationPerms[key],0,1)
         plt.scatter(locs[0],locs[1])
         plt.scatter(self.start[0],self.start[1])
-        labels = np.arange(1, locs[0].size+3)
-        for i in range(labels.size-2):
-            plt.text(locs[0][i],locs[1][i],str(i+1))
+        plt.text(self.start[0]+0.06,self.start[1]-0.05, "1/8")
+        for i in range(locs.size):
+            plt.text(locs[0][i]+0.06,locs[1][i]-0.05,str(i+2))
 if __name__=='__main__':
     #oracle = Oracle(x=3,n_qubits = 10)
     #k = grover_search(oracle)
     #print(k)
-    locations = np.array([[0,1],[3,4],[4,3],[2,1],[5,2],[1,2],[2,3]])
+    locations = np.array([[0,1],[0,5],[2,3],[1,1],[5,2],[3,2],[4,3]])
     
     n=locations.size-1
     o = TSPOracle(locations, 14.5)
