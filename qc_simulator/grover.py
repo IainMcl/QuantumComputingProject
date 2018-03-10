@@ -1,5 +1,5 @@
-from qc_simulator.qc import *
-from qc_simulator.functions import *
+from qc import *
+from functions import *
 import numpy as np
 import math
 
@@ -30,8 +30,8 @@ def grover(oracle, k=1):
     not_gate = Not()
     h_gate = Hadamard()
     z = PhaseShift(np.pi)
-    # control_z = CUGate(z, n_qubits-1)
-    control_z = build_n_not(n_qubits-1)
+    control_z = CUGate(z, n_qubits-1)
+    #control_z = build_n_not(n_qubits-1)
     h_n_gate = Hadamard(n_qubits+1)
     not_n_gate = Not(n_qubits+1)
     I=IdentityGate()
@@ -74,7 +74,7 @@ def grover(oracle, k=1):
 
 
 ## Main and testing###
-if __name__=='__main__': 
+if __name__=='__main__':
 
     n=5
     oracle1=oracle_single_tag(n,1)
@@ -96,4 +96,3 @@ if __name__=='__main__':
 
     print('Grover search ran {} times.'.format(n_runs))
     print('Most likely state being tagged is {} with {}/100 confidence.'.format(target_state, accuracy))
-

@@ -5,7 +5,7 @@ Created on Tue Feb 20 15:22:28 2018
 @author: Lewis
 """
 
-from qc_simulator.qc import *
+from qc import *
 import numpy as np
 import math
 
@@ -249,4 +249,3 @@ if __name__ == '__main__':
     print(register2)
     print('/n')
     print(register2.base_states)
-
