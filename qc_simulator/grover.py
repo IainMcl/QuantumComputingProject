@@ -25,8 +25,8 @@ def grover(oracle, k=1):
     not_gate = Not()
     h_gate = Hadamard()
     z = PhaseShift(np.pi)
-    #control_z = CUGate(z, n_qubits-1)
-    control_z = build_nc_z(n_qubits-1)
+    control_z = CUGate(z, n_qubits-1)
+    # control_z = build_nc_z(n_qubits-1)
     h_n_gate = Hadamard(n_qubits+1)
     not_n_gate = Not(n_qubits+1)
     I=IdentityGate()
@@ -48,13 +48,8 @@ def grover(oracle, k=1):
         register = register * aux
 
         # Apply grover iteration
-        #register = oracle_gate * register
-        #register = oracle_gate2 * register
         register=oracle * register
-        register.remove_aux(1/np.sqrt(2))
-        register = register* aux
         register = W * register
-        #register.remove_aux(1/np.sqrt(2))
 
         # Extract input register and reset auxillary qubit (hacky way)
         register.remove_aux(1/np.sqrt(2))
@@ -64,30 +59,37 @@ def grover(oracle, k=1):
     #register.plot_register()
     measurement = register.measure()
 
-    return measurement
+    result = (register, measurement)
+
+    return result
 
 
 
 ## Main and testing###
 if __name__=='__main__':
 
-    n=5
+    n=2
     oracle1=oracle_single_tag(n,1)
-    oracle2=oracle_single_tag(n,5)
+    #oracle2=oracle_single_tag(n,5)
     #oracle3=oracle_single_tag(n,10)
     #oracle4=oracle_single_tag(n,15)
     #oracle=oracle1*oracle2*oracle3*oracle4
-    oracle=oracle1*oracle2
-    n_runs = 50
-    results = np.zeros(n_runs, dtype=int)
-    for i in range(n_runs):
-        measurement=grover(oracle1)
-        results[i] = measurement
+    #oracle=oracle1*oracle2
 
-    # Return number measured most often together with the accuracy
-    num_of_occurences = np.bincount(results)
-    target_state = np.argmax((num_of_occurences) )
-    accuracy = num_of_occurences[target_state]/n_runs * 100
+    reg = grover(oracle1)
+    print(reg[0])
 
-    print('Grover search ran {} times.'.format(n_runs))
-    print('Most likely state being tagged is {} with {}/100 confidence.'.format(target_state, accuracy))
+
+    # n_runs = 50
+    # results = np.zeros(n_runs, dtype=int)
+    # for i in range(n_runs):
+    #     measurement=grover(oracle1)
+    #     results[i] = measurement
+    #
+    # # Return number measured most often together with the accuracy
+    # num_of_occurences = np.bincount(results)
+    # target_state = np.argmax((num_of_occurences) )
+    # accuracy = num_of_occurences[target_state]/n_runs * 100
+    #
+    # print('Grover search ran {} times.'.format(n_runs))
+    # print('Most likely state being tagged is {} with {}/100 confidence.'.format(target_state, accuracy))
