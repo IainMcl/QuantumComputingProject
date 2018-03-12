@@ -1,7 +1,7 @@
-from qc import *
-from functions import *
-import numpy as np
-import math
+#from qc import *
+#from functions import *
+#import numpy as np
+#import math
 
 
 def grover(oracle, k=1):

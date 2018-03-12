@@ -5,9 +5,9 @@ Created on Tue Feb 20 15:22:28 2018
 @author: Lewis
 """
 
-from qc import *
-import numpy as np
-import math
+#from qc import *
+#import numpy as np
+#import math
 
 def init_qubit(theta,phi):
     """
