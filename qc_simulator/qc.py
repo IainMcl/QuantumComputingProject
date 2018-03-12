@@ -19,10 +19,7 @@ import matplotlib.pyplot as plt
 from qutip import *
 
 #import abstract classes
-from qc_abstract import  *
-
-
-
+from qc_simulator.qc_abstract import *
 
 class QuantumRegister(QuantumRegisterAbstract):
     """
@@ -31,7 +28,6 @@ class QuantumRegister(QuantumRegisterAbstract):
     corresponding state, eg. the first element is the first state, the second
     element is the second state.
     """
-
 
 
     def __init__(self, n_qubits=1, isempty=False):
@@ -115,47 +111,6 @@ class QuantumRegister(QuantumRegisterAbstract):
         """
         self.base_states = np.roll(self.base_states, n)
 
-    def split(self):
-        """
-        Splits the register into target and control registers. It is assumed that the target
-        register is of size 1. This method is meant to be used after the application of
-        any sort of control gate.
-        :return: Tuple containing two quantum regsiters, the first one being the control and
-        the second one being the target.
-
-
-        Note that for now this method only works if the target qubit is not in superposition,
-        """
-        N = self.n_qubits
-        base_states = self.base_states
-
-        for i in range(N - 1, 0, -1):
-            max_index = 2 ** i
-            indexes = np.argwhere(base_states)
-
-            # Check to see if any element are above the max index
-            filter = indexes >= max_index
-            filtered_indexes = indexes[filter]
-
-            # If there are no indexes below the max index, then algorithm is done
-            if filtered_indexes.size == 0:
-                # return first 2 elements of qubit array and create new quantum register
-                target_base_states = base_states[:2]
-                target_register = QuantumRegister()
-                target_register.base_states = target_base_states
-
-                # Add return statement here
-                return target_register
-            else:
-                # Roll the qubits array by 2**i
-                base_states = np.roll(base_states, -max_index)
-
-                if i == 1:
-                    target_base_states = base_states[:2]
-                    target_register = QuantumRegister(isempty=True)
-                    target_register.base_states = target_base_states
-
-                    return target_register
 
     def remove_aux(self, a):
         """
@@ -210,7 +165,6 @@ class QuantumRegister(QuantumRegisterAbstract):
             objs.append(obj)
         #b.add_states(objs)
         b.show()
-
 
 class Operator(OperatorAbstract):
     """
@@ -516,6 +470,3 @@ def build_c_c_not(num_control_i=0, num_target_i=0):
               (control_not % I) * (I % control_v) * (I % I % h_gate)
 
     return toffoli
-
-
-#testing
