@@ -47,9 +47,13 @@ from math import pi
 import matplotlib.pyplot as plt
 from qutip import *
 
+# Import abstract classes
+from qc_simulator.qc_abstract import  *
 
 
-class QuantumRegister:
+
+
+class QuantumRegister(QuantumRegisterAbstract):
     """
     Quantum register class. The quantum register is saved as a complex
     numpy array. Each element of the array is the amplitude of the
@@ -246,6 +250,7 @@ class QuantumRegister:
         # Check to see if the sliced qubits are enatngled or not.
 
         pass
+
     def plot_register(self, show=True):
         ax = plt.bar(np.arange(2**self.n_qubits),np.absolute(self.base_states))
         if show:
@@ -266,7 +271,7 @@ class QuantumRegister:
         b.show()
 
 
-class Operator():
+class Operator(OperatorAbstract):
     """
     Class that defines a quantum mechanical operator. The operator is
     a matrix. Only non zero elements are saved in a list of triplets. For each
@@ -578,3 +583,7 @@ def build_c_c_not(num_control_i=0, num_target_i=0):
               (control_not % I) * (I % control_v) * (I % I % h_gate)
 
     return toffoli
+
+
+#testing
+H =Operator(n_qubits=1, base=np.array(([ [0,1], [1,0]])))
