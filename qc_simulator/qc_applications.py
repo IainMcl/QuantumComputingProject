@@ -21,12 +21,12 @@ class TSPOracle():
         self.locations = locations[1:locations.size-1]
         self.start = locations[0]
         self.locationPerms = tuple(permutations(self.locations))
-        self.locationPerms += self.locationPerms[:math.ceil(math.log(len(self.locationPerms),2))-len(self.locations)]
-        print(len(self.locationPerms))
+        self.locationPerms += self.locationPerms[:2**math.ceil(math.log(len(self.locationPerms),2))-len(self.locationPerms)]
         self.threshold = threshold
         
     def calcDistance(self, locationArray):
         self.dist = distance.euclidean(self.start,locationArray[0]) + distance.euclidean(self.start,locationArray[-1])
+        
         for i in range(len(locationArray)-1):
             self.dist += distance.euclidean(locationArray[i],locationArray[i+1])
             
@@ -37,13 +37,20 @@ class TSPOracle():
             return 0
         dist = self.calcDistance(self.locationPerms[key])
         
+        
+        
         if dist < self.threshold:
             return 1
         else:
             return 0
         
     def plot_locations(self, key):
-        locs = np.swapaxes(self.locationPerms[key],0,1)
+        try:
+            locs = np.swapaxes(self.locationPerms[key],0,1)
+            print(locs)
+        except IndexError:
+            print("Undefined route, try running Grover again :(")
+            return 0
         plt.scatter(locs[0],locs[1])
         plt.scatter(self.start[0],self.start[1])
         plt.text(self.start[0]+0.06,self.start[1]-0.05, "1")
@@ -56,26 +63,29 @@ if __name__=='__main__':
     #oracle = Oracle(x=3,n_qubits = 10)
     #k = grover_search(oracle)
     #print(k)
-    locations = np.array([[2,1],[0,5],[2,3],[1,4],[3,2]])
+    locations = np.array([[2,3],[3,6],[9,2],[0,5]])
     
     n=locations.size-1
-    o = TSPOracle(locations, 13)
+    o = TSPOracle(locations, 20.5)
     dists = []
-    for i in range(1):
+    for i in range(len(o.locationPerms)):
         o[i]
         dists.append(o.dist)
         
-    print(min(dists))
+        
+    #print(min(dists))
     #o = OracleFunction(4)
     
     o.plot_locations(np.argmin(dists))
     
-    Of = FunctionalOracle(o, 7)
+    Of = FunctionalOracle(o, 3)
     i = grover(Of,k=3)[1]
-    print(i)
-    print(o.calcDistance(o.locationPerms[i]))
-    print(min(dists))
-    o.plot_locations(i)
+    #print(i)
+    
+    print("\n")
+    print("Grover minimum distance: {}".format(o.calcDistance(o.locationPerms[i])))
+    print("Classical minimum distance: {} ".format(min(dists)))
+    
     
     
         
