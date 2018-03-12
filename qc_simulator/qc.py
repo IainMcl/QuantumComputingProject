@@ -10,16 +10,16 @@ matrix format (csc).
 
 """
 
-#import numpy as np
-#from numpy.linalg import norm
-#from scipy.sparse import identity as sparse_identity
-#from scipy.sparse import coo_matrix, csc_matrix, lil_matrix, kron
-#from math import pi
-#import matplotlib.pyplot as plt
-#from qutip import *
+import numpy as np
+from numpy.linalg import norm
+from scipy.sparse import identity as sparse_identity
+from scipy.sparse import coo_matrix, csc_matrix, lil_matrix, kron
+from math import pi
+import matplotlib.pyplot as plt
+from qutip import *
 
-# Import abstract classes
-#from qc_simulator.qc_abstract import  *
+#import abstract classes
+from qc_abstract import  *
 
 
 

@@ -4,7 +4,7 @@ Created on Wed Mar  7 14:49:33 2018
 
 @author: Lewis
 """
-#from qc import *
+from qc import *
 class FunctionalOracle(Operator):
     def __init__(self, oracle_function, n_qubits):
         self.function = oracle_function

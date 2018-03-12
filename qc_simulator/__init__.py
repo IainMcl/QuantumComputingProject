@@ -1,3 +1,4 @@
+"""
 from qc import *
 from functions import *
 from grover import *
@@ -14,3 +15,4 @@ import math
 from scipy.sparse import identity as sparse_identity
 from scipy.sparse import coo_matrix, csc_matrix, lil_matrix, kron
 from numpy.linalg import norm
+"""
