@@ -4,11 +4,11 @@ Created on Wed Mar  7 14:49:33 2018
 
 @author: Lewis
 """
-
+from qc import *
 class FunctionalOracle(Operator):
     def __init__(self, oracle_function, n_qubits):
         self.function = oracle_function
-        super().__init__(n_qubits)
+        self.n_qubits = n_qubits
         
     def __mul__(self,rhs):
         if not isinstance(rhs, QuantumRegister):
@@ -21,6 +21,7 @@ class FunctionalOracle(Operator):
                 
         outReg = QuantumRegister(self.n_qubits)
         outReg.base_states = output
+        outReg.normalise()
         return outReg
                 
                 
