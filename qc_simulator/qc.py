@@ -1,42 +1,13 @@
 """
 07/02/2018
-Andreas Malekos - School of Physics and Astronomy, The University of Edinburgh
+Andreas Malekos, Gabriel Hoogervorst, John Harbottle, Lewis Lappin, Huw Haigh
+School of Physics and Astronomy, The University of Edinburgh
 
-Quantum Computing Project
-Definition of abstract classes for qubits and quantum registers
+Classes for quantum register and operators. Implement the abstract classes
+defined in qc_abastract. The Quantum register is implemented as a 1D numpy array
+and the matrix gates as sparse matrices, using the Compressed Sparse Column
+matrix format (csc).
 
-Some notes from Andreas:
--This file need to contain:
-        -Operations between qubits
-            -Bitwise operations between quantum registers?
-            -Visualization?
-
-            Loosely based on the QObj object found in QuTip (Quantum Toolbox in Python)
-            http://qutip.org/tutorials.html
-
-            And on this more basic implementation of a quantum register
-            https://github.com/thmp/quantum/blob/master/register.py
-
-            Scipy sparse matrix docs:
-            https://docs.scipy.org/doc/scipy/reference/sparse.html
-
-
-            -Do we need something to convert integers to binary
-
-    -Probably need a class for grover's iterate defined as child class of more
-    general operator class?
-##################################################
-    -Add method to check if state is normalised, if not, normalise
-    -Add special class for any type of control gate, that accepts a gate, Number
-     of control qubits and number of taget qubits as inputs
-    -Add get methods for matrices of operators and qubits
-    -Add class for unitary operator (H*R*H*R)
-    -
-
-##################################################
-The way the implementation works right now is that the gates are implemented
-as Operator class objects. Quantum circuits can be defined as functions that
-"string" different gates together
 """
 
 import numpy as np
@@ -47,15 +18,17 @@ from math import pi
 import matplotlib.pyplot as plt
 from qutip import *
 
+#import abstract classes
+from qc_abstract import *
 
-
-class QuantumRegister:
+class QuantumRegister(QuantumRegisterAbstract):
     """
     Quantum register class. The quantum register is saved as a complex
     numpy array. Each element of the array is the amplitude of the
     corresponding state, eg. the first element is the first state, the second
     element is the second state.
     """
+
 
     def __init__(self, n_qubits=1, isempty=False):
         """
@@ -75,6 +48,7 @@ class QuantumRegister:
         """
         Make a measurement. Square all the amplitudes and choose a random state.
         Outputs an integer representing the state measured (decimal system).
+        :return: state, integer that corresponds to the number of the state measured, in decimal format.
         """
         # Calculate probabilities
         probabilities = np.zeros(self.n_states)
@@ -83,50 +57,32 @@ class QuantumRegister:
 
         # Choose a random state
         n = int(self.n_states)
-        state = np.random.choice(n, p=probabilities)
+        state =  int (np.random.choice(n, p=probabilities) )
 
         return state
 
     def __mul__(self, other):
         """
-        Tensor product between the two quantum registers. Outputs a new quantum
-        register.
-        """
-        # Result is tensor product of the qubits in each state
-        temp_result = np.kron(self.base_states, other.base_states)
-
-        # Result has to be normalized
-        result_normalized = temp_result / norm(temp_result)
-
-        # Create quantum register object for result
-        qmr_result = QuantumRegister(self.n_qubits + other.n_qubits)
-        qmr_result.base_states = result_normalized
-
-        return qmr_result
-
-    def __add__(self, other):
-        """
-        Overrides + operator to add two quantum registers |c> = |a> + |b>.
-        Quantum registers have to be of the same size. Result is normalised at the
-        end of the operation.
-
-        :param other: the right hand side quantum register
-        :return: resulting quantum register whose qubit array is simply the normalised
-        sum of the current quantum register and "other"
+        Overrides multiplication operator to define tensor product between two quantum registers.
+        :param other: right hand side quantum register
+        :return: qmr_result, resulting quantum register.
         """
 
-        # Check if registers have the same size, if not return error
-        if self.n_qubits != other.n_qubits:
-            raise ValueError('Registers have the same size!')
+        # Check if other is of the right tyoe
+        if isinstance(other, QuantumRegister):
+            # Result is tensor product of the qubits in each state
+            temp_result = np.kron(self.base_states, other.base_states)
 
-        # Define new quantum register and add the qubits
-        result = QuantumRegister(self.n_qubits)
-        result.base_states = self.base_states + other.qubits
+            # Result has to be normalized
+            result_normalized = temp_result / norm(temp_result)
 
-        # Normalise and return
-        # result.normalise()
+            # Create quantum register object for result
+            qmr_result = QuantumRegister(self.n_qubits + other.n_qubits)
+            qmr_result.base_states = result_normalized
 
-        return result
+            return qmr_result
+        else:
+            raise TypeError('Multiplication not defined between quantum register and {}.'.format(type(other)))
 
     def __str__(self):
         """
@@ -155,53 +111,11 @@ class QuantumRegister:
         """
         self.base_states = np.roll(self.base_states, n)
 
-    def split(self):
-        """
-        Splits the register into target and control registers. It is assumed that the target
-        register is of size 1. This method is meant to be used after the application of
-        any sort of control gate.
-        :return: Tuple containing two quantum regsiters, the first one being the control and
-        the second one being the target.
-
-
-        Note that for now this method only works if the target qubit is not in superposition,
-        """
-        N = self.n_qubits
-        base_states = self.base_states
-
-        for i in range(N - 1, 0, -1):
-            max_index = 2 ** i
-            indexes = np.argwhere(base_states)
-
-            # Check to see if any element are above the max index
-            filter = indexes >= max_index
-            filtered_indexes = indexes[filter]
-
-            # If there are no indexes below the max index, then algorithm is done
-            if filtered_indexes.size == 0:
-                # return first 2 elements of qubit array and create new quantum register
-                target_base_states = base_states[:2]
-                target_register = QuantumRegister()
-                target_register.base_states = target_base_states
-
-                # Add return statement here
-                return target_register
-            else:
-                # Roll the qubits array by 2**i
-                base_states = np.roll(base_states, -max_index)
-
-                if i == 1:
-                    target_base_states = base_states[:2]
-                    target_register = QuantumRegister(isempty=True)
-                    target_register.base_states = target_base_states
-
-                    return target_register
 
     def remove_aux(self, a):
         """
-        Removes auxillary qubit from quantum register
+        Removes auxillary qubit from quantum register. Requires previous knowledge of auxilary qubit.
         :param a:
-        :return:
         """
 
         # Remove every second element of the base state array. Then divide every element by a
@@ -215,38 +129,31 @@ class QuantumRegister:
         """
         Normalise coefficients of qubits array
         """
-        qubits_normalised = self.base_states / norm(self.base_states)
-        self.base_states = qubits_normalised
+        # Add tolerance to remove extremely small floating point calculation errors
+        tol = 10 ** (-8)
+        filter = abs(self.base_states) >= tol
+        self.base_states = self.base_states * filter
 
-    def __getitem__(self, key):
-        """
-        Override of the [] operator to return a "subregister" of the current quantum register. The method checks first
-        to see whether the subregister desired contains entangled qubits or not, and raises an error if it does. The
-        condition to check whether a subregister is entangled or not is that non zero elelents of the corresponding
-        array must all be either in odd or even indexes.
-        :param slice: qubit number
-        :return: subregister as defined by slice
-        """
+        base_states_normalised = self.base_states / norm(self.base_states)
 
-        # Length of new quantum register:
-        if key.start == None:
-            l = 1
-        else:
-            l = key.stop - key.start
+        self.base_states = base_states_normalised
 
-        # Extract the qubits
-        qubits = self.base_states
-
-        # Check to see if the sliced qubits are enatngled or not.
-
-        pass
     def plot_register(self, show=True):
+        """
+        Produce bar graph of quantum register.
+        :param show: Boolean flag that if set to true, shows the bar graph.
+        :return: ax, axis handle object.
+        """
         ax = plt.bar(np.arange(2**self.n_qubits),np.absolute(self.base_states))
         if show:
             plt.show()
         return ax
 
     def plot_bloch(self, is3D=False):
+        """
+        Creates a bloch sphere of the quantum register.
+        :param is3D: lewis has to add comments for this
+        """
         if is3D:
             b = Bloch3d()
         else:
@@ -259,28 +166,17 @@ class QuantumRegister:
         #b.add_states(objs)
         b.show()
 
-
-class Operator():
+class Operator(OperatorAbstract):
     """
-    Class that defines a quantum mechanical operator. The operator is
-    a matrix. Only non zero elements are saved in a list of triplets. For each
-    element in the list (i,j,Mij):
-        -i,j: row nad column number
-        -Mij: of the operator at that row and column
-
-
-    For now the operator is saved as a dense matrix. Special cases like control
-    gates will be saved as sparse matrices.
+    Class that defines a quantum mechanical operator. Implments abstract class
+    OperatorAbstract. The operator is stored as a square sparse matrix.
     """
 
     def __init__(self, n_qubits=1, base=np.zeros((2, 2))):
         """
-        Class initialiser. The class accepts two inputs:
-            -n_qubits: Number of qubits on which this operator will operate.
-            -base: The "base" 2*2 matrix of the operator.
-
-        [Note that fow now we assume that every operator has a unitary "base"
-        and that there is no need "native" binary operators (such as SWAP gate)]
+         Class constructor
+         :param n_qubits: number of qubits operator operates on
+         :param base: base matrix
         """
         self.n_qubits = n_qubits
         self.size = 2 ** n_qubits
@@ -291,6 +187,9 @@ class Operator():
         """
         Create matrix by taking successive tensor producs between for the total
         number of qubits.
+        :param n_qubits: number of qubits operator operates on
+        :param base: base matrix
+        :return: sparse matrix (csc format)
         """
         base_complex = np.array(base, dtype=complex)
         result = lil_matrix(base_complex)
@@ -308,8 +207,11 @@ class Operator():
 
     def __mul__(self, rhs):
         """
-        Overides multiplication operator so that the product between two operators
-        (assuming they have the same size) gives the correct result.
+        Overrides multiplication operator and defined the multiplication between
+        two operators and an operator and a quantum register.
+        :param rhs: right hand side, can be either operator or quantum register
+        :return: Operator if rhs is of type Operator then return Operator. If it's of
+        type QuantumRegister, then return a quantum register object.
         """
         if isinstance(rhs, QuantumRegister):
             # Apply operator to quantum register
@@ -341,28 +243,44 @@ class Operator():
             # Otherwise take dot product of
             result = Operator(self.n_qubits)
             result.matrix = self.matrix.dot(rhs.matrix)
-
             return result
+
+        else :
+            " Raise type error if the right type isn't provided"
+            raise TypeError(
+                'Multiplication not defined for Operator and {}.'.format(type(rhs))
+            )
+
+
 
     def __mod__(self, other):
         """
-        Override mod operator to defint tensor product between operators
+        Overrides "%" operator to define tensor product between two operators.
+        :param other: Operator object, right hand side
+        :return: Operator object
         """
         # Tensor product between the two operators
-        result = Operator(self.n_qubits + other.n_qubits)
-        result.matrix = csc_matrix(kron(self.matrix, other.matrix))
-        return result
+        if isinstance(other, Operator):
+            result = Operator(self.n_qubits + other.n_qubits)
+            result.matrix = csc_matrix(kron(self.matrix, other.matrix))
+            return result
+        else:
+            raise TypeError(
+                'Operation not defined between operator and {}.'.format(type(other))
+            )
 
     def __str__(self):
         """
-        Override __str__ method and print out the gate
-        :return: rep -> print out of numpy array
+        Provides method to pring out operator.
+        :return: rep: String that corresponds the __str__() method of the
+        numpy array.
         """
         return self.matrix.toarray().__str__()
 
     def dag(self):
         """
-        Returns the hermitian transpose of the operator
+        Computes hermitian transpose of operator.
+        :return: herm_transpse: Hermitian transpose of operator
         """
 
         herm_transpose = Operator(self.n_qubits)
@@ -370,11 +288,9 @@ class Operator():
 
         return herm_transpose
 
-
 class Hadamard(Operator):
     """
-    Class that defines hadamard gate. This class extends the Operator class. For
-    now it simply calls the parent classes and passes to it the base argument.
+    Class that defines hadamard gate. This class extends the Operator class.
     """
 
     def __init__(self, n_qubits=1):
@@ -382,41 +298,36 @@ class Hadamard(Operator):
         self.base = 1 / np.sqrt(2) * np.array([[1, 1], [1, -1]])
         super(Hadamard, self).__init__(n_qubits, self.base)
 
-
 class PhaseShift(Operator):
     """
-    Implementation of phase shift gate.
+    Class that implements phase shift gate
     """
 
     def __init__(self, phi, n_qubits=1):
         self.base = np.array([[1, 0], [0, np.exp(1j * phi)]])
         super(PhaseShift, self).__init__(n_qubits, self.base)
 
-
 class Not(Operator):
-    """Implements NOT gate
+    """
+    Class that implements not gate.
     """
 
     def __init__(self, n_qubits=1):
         self.base = np.array([[0, 1], [1, 0]])
         super(Not, self).__init__(n_qubits, self.base)
 
-
 class CUGate(Operator):
     """
-    Class that implements a controlled U gate
+    Class that implements a controlled U gate.
     """
 
     def __init__(self, base, n_control=1, n_target=1, num_of_i=0):
         """
-        Class accepts the base matrix U, number of control qubits and number of
-        target qubits.
-        Inputs:
-        base: matrix/operator
-        n_control: number of control qubits
-        n_target: number of target qubits (has been set to 1 as default)
-        n_I: integer, number of I operators between the control register and the target
-        register.
+        Class constructor.
+        :param base: base Operator U
+        :param n_control: number of control qubits
+        :param n_target: number of target qubits
+        :param num_of_i: number of empty lines between control and target qubit.
         """
         self.n_control = n_control
         self.n_target = n_target
@@ -431,6 +342,8 @@ class CUGate(Operator):
         Matrix is constructed using the 'lil' format, which is better for
         incremental construction of sparse matrices and is then converted
         to 'csc' format, which is better for operations between matrices
+        :param base: base operator U
+        :return: sparse matrix
         """
 
         # Create sparse hadamard matrix
@@ -451,7 +364,7 @@ class CUGate(Operator):
             return c_gate
         else:
             # Put sub matrix in corner of big matrix
-            i_sparse = identity(2 ** self.num_of_i, format='lil')
+            i_sparse = sparse_identity(2 ** self.num_of_i, format='lil')
             bottom_right_quarter = kron(i_sparse, base.matrix)
 
             sparse_matrix[int(self.size / 2):, int(self.size / 2):] = bottom_right_quarter
@@ -478,7 +391,7 @@ class CUGate(Operator):
 
 class IdentityGate(Operator):
     """
-    Identity operator.
+    Class that implements identity operator.
     """
     def __init__(self, n_qubits = 1):
         super(IdentityGate, self).__init__(n_qubits, base=np.eye(2,2))
@@ -531,25 +444,6 @@ class fGate(Operator):
         return result
 
 
-class Oracle(Operator):
-    """
-    Class that implements the oracle. This gate takes an n qubits as
-    input and flips it if f(x) = 1, otherwise it leaves it as the same.
-    """
-
-    def __init__(self, n_qubits=1, x=0):
-        """
-        Class constructor.
-        Inputs:
-        n_states: Total number of n_states
-        x: state that is fliped.
-        """
-        self.n_states = 2 ** n_qubits
-        self.n_qubits = n_qubits
-        # Operator matrix will be identity with a -1 if the xth,xth element
-        self.matrix = identity(self.n_states, format='csc')
-        self.matrix[x, x] = -1
-
 
 def build_c_c_not(num_control_i=0, num_target_i=0):
     """
@@ -557,13 +451,13 @@ def build_c_c_not(num_control_i=0, num_target_i=0):
     first control. By default these distances are set to 1 and 2 respectively.
     :param num_control_i:
     :param num_target_i:
-    :return: toffoli -> toffoli gate (Operator Object)
+    :return: toffoli, toffoli gate (Operator Object)
     """
 
    # add statement that checks whether control2 <= target
 
     h_gate = Hadamard()
-    I = Operator(base=np.eye(2, 2))
+    I = IdentityGate()
     v_gate = PhaseShift(np.pi / 2)
     control_v = CUGate(v_gate, num_of_i=num_target_i - num_control_i)
     control_not = CUGate(Not(), num_of_i=num_control_i)

@@ -4,85 +4,12 @@ Created on Tue Feb 20 15:22:28 2018
 
 @author: Lewis
 """
-from qc_simulator.qc import *
+#!/usr/bin/env python3
+
+from qc import *
 import numpy as np
-def init_qubit(theta,phi):
-    """
-    Initialises a qubit to the following state:
-    |psi> = cos(theta) * |0> + exp(i*phi) * |1>
-    """
-    h_gate = Hadamard()
-    r_theta = PhaseShift(2 * theta)
-    r_phi = PhaseShift(pi/2 + phi )
-    initial_state = QuantumRegister()
+import math
 
-    u_gate = r_phi * h_gate * r_theta * h_gate
-
-    result = u_gate*initial_state
-
-    return result
-
-def deutsch(oracle):
-    """
-    Implements deutsch's algortithm to determine whether the oracle passed is
-    balanced or not.
-
-    Extension of deutsch algorithm to n qubits
-    """
-    #Extract number of qubits
-    n = oracle.n_qubits
-
-    #Initialise both quantum registers
-    register1 = QuantumRegister(n)
-
-    not_gate = Not()
-    h_gate = Hadamard()
-    register2 = h_gate * not_gate  * QuantumRegister()
-
-    #Pass register 1 through hadamard gate
-    register1 = h_gate * register1
-
-    #Apply oracle to register 2
-
-    return k
-
-def grover_search(oracle):
-    """
-    implements grover's search algorithm at the given quantum register and
-    oracle, for just one element. Will later be extedned to multiple elements.
-    Inputs:
-    quant_register:
-    oracle: oracle function that "tags" a qubit in the quantum register
-
-    Outputs:
-    measured_state: the state which the oracle tagged
-    """
-
-    #Initialise quantum state and set it in superposition
-    n = oracle.n_qubits
-    register1 = QuantumRegister(n)
-    h_gate = Hadamard(n)
-    psi = h_gate * psi
-    oracle_0 = Oracle()
-    I = Operator(1, np.eye(2))
-    resgiter2 = QuantumRegister()
-    register.qubits = 1/np.sqrt(2)*np.array( [ 1, -1]) #will be done through unitary gate in the future: 1/sqrt(2) * (|0> - |1>)
-    #Initialise grover's itearate
-    c_fk = CUGate( oracle, n)
-    c_f0 = CUGate( oracle_0, n)
-
-    term1 = c_fk.dot(h_gate*I)
-    term2 = c_f0.dot(h_gate*I)
-    grover_iterate = term1.dot(term2)
-    #based on first paper for grover's iterate
-
-
-    #for loop for grover search. At each iteration, apply grover's diffucion operator
-
-    #After for loop, perform measurement
-
-    k = psi.measure()
-    return k
 
 def quantumAdder(a,b):
     """
@@ -133,45 +60,178 @@ def invert_average(quant_register):
     pass
 
 def oracle_single_tag(n, tag):
-        n_qubits=n+1
-        # Convert tag to binary string
-        bina_str=np.binary_repr(tag, n)
-        # Convert binary string to list of integers
-        binalist=[int(s) for s in bina_str]
-        # Reverse list as operators are applied in opposite order
-        binalist=binalist[::-1]
+    n_qubits=n+1
+    # Convert tag to binary string
+    bina_str=np.binary_repr(tag, n)
+    # Convert binary string to list of integers
+    binalist=[int(s) for s in bina_str]
+    # Reverse list as operators are applied in opposite order
+    binalist=binalist[::-1]
 
-        # Initiate base gates
-        not_gate = Not()
-        I = Operator(base=np.eye(2,2))
+    # Initiate base gates
+    not_gate = Not()
+    I = Operator(base=np.eye(2,2))
 
-        # Initiate the prep gate with if statement
-        '''
-        if binalist[0]==1:
-            prep_gate=I
-        elif binalist[0]==0:
-            prep_gate=not_gate
-        '''
+    # Initiate the prep gate with if statement
+    '''
+    if binalist[0]==1:
         prep_gate=I
-        # For loop to create whole gate
-        for i in binalist:
-            if i==1:
-                prep_gate= I % prep_gate
-            if i==0:
-                prep_gate= not_gate % prep_gate
+    elif binalist[0]==0:
+        prep_gate=not_gate
+    '''
+    prep_gate=I
+    # For loop to create whole gate
+    for i in binalist:
+        if i==1:
+            prep_gate= I % prep_gate
+        if i==0:
+            prep_gate= not_gate % prep_gate
 
-        cn_not = CUGate(not_gate, n_qubits-1)
+    cn_not = CUGate(not_gate, n_qubits-1)
 
-        oracle_gate=prep_gate*cn_not*prep_gate
-        return oracle_gate
+    oracle_gate=prep_gate*cn_not*prep_gate
+    return oracle_gate
+
+def build_nc_not(n):
+    """
+    Builds n controleld not gate
+    :param n: number of control qubits
+    :return: cn_gate, controlled not gate
+    """
+
+    # Iniate the three base gates
+    not_gate = Not()
+    c_c_not=build_c_c_not()
+    c_not=CUGate(not_gate)
+
+    # Initialise total number of quibts
+    n_qubits = n+1
+
+
+    # Two cases, n is even and n odd
+    # Num will be the number of gates necessary
+    # If odd
+    if (n_qubits%2)==1:
+        num_of_gates = n_qubits-2
+    if (n_qubits%2)==0:
+        num_of_gates = n_qubits-1
+
+    # Initiate the gates list
+    gates = np.empty(2 * num_of_gates - 1, dtype=Operator)
+
+    # Define first column of gates
+    gates[0] = c_c_not % IdentityGate(n_qubits-3)
+
+    # Construct n_not gate in for Loop
+    for i in range(1, num_of_gates-1):
+
+        # Check if we are on an even or odd step
+        if num_of_gates%2 == 0:
+            num_of_i_above = 2 * (i-1)
+            num_of_i_below = n_qubits - num_of_i_above - 3
+
+            I_above = IdentityGate(num_of_i_above)
+            I_below = IdentityGate(num_of_i_below)
+
+            gates[i] = I_above % c_c_not % I_below
+        else:
+            num_of_i_above = 2 * i
+            num_of_i_below = n_qubits - num_of_i_above - 1
+
+            I_above = IdentityGate(num_of_i_above)
+            I_below = IdentityGate(num_of_i_below)
+
+            gates[i] = I_above % not_gate % I_below
+
+
+
+
+    # Define middle column of gates
+    gates[num_of_gates-1] = IdentityGate(n_qubits-3) % c_c_not
+
+    # Fill out the rest of the array
+    gates[num_of_gates: ] = np.flip(gates[:num_of_gates-1], axis=0)
+
+    # Complete gate is the multiplication of everything inside the array
+    cn_gate = np.prod(gates)
+
+    return cn_gate
+
+def build_nc_z(n):
+    """
+    Builds an n controlled not gate
+    Total number of qubits is therefore n+1
+    """
+    # Iniate the three base gates
+    z_gate = PhaseShift(np.pi)
+    c_c_z = CUGate(z_gate, 2)
+    not_gate = Not()
+    c_c_not=build_c_c_not()
+    c_not=CUGate(not_gate)
+    #I = Operator(base=np.eye(2,2))
+
+    # Initialise total number of quibts
+    n_qubits = n+1
+
+
+    # Two cases, n is even and n odd
+    # Num will be the number of gates necessary
+    # If odd
+    if (n_qubits%2)==1:
+        num_of_gates = n_qubits-2
+    if (n_qubits%2)==0:
+        num_of_gates = n_qubits-1
+
+    # Initiate the gates list
+    gates = np.empty(2 * num_of_gates - 1, dtype=Operator)
+
+    # Define first column of gates
+    gates[0] = c_c_not % IdentityGate(n_qubits-3)
+
+    # Construct n_not gate in for Loop
+    for i in range(1, num_of_gates-1):
+
+        # Check if we are on an even or odd step
+        if num_of_gates%2 == 0:
+            num_of_i_above = 2 * (i-1)
+            num_of_i_below = n_qubits - num_of_i_above - 3
+
+            I_above = IdentityGate(num_of_i_above)
+            I_below = IdentityGate(num_of_i_below)
+
+            gates[i] = I_above % c_c_not % I_below
+        else:
+            num_of_i_above = 2 * i
+            num_of_i_below = n_qubits - num_of_i_above - 1
+
+            I_above = IdentityGate(num_of_i_above)
+            I_below = IdentityGate(num_of_i_below)
+
+            gates[i] = I_above % not_gate % I_below
+
+
+
+
+    # Define middle column of gates
+    gates[num_of_gates-1] = IdentityGate(n_qubits-3) % c_c_z
+
+    # Fill out the rest of the array
+    gates[num_of_gates: ] = np.flip(gates[:num_of_gates-1], axis=0)
+
+    # Complete gate is the multiplication of everything inside the array
+    cnz_gate = np.prod(gates)
+
+    return cnz_gate
+
 
 
 if __name__ == '__main__':
+    n = 3
+    not_gate = Not()
 
-    #Create function
-    f = Operator(10, np.array( [ [1,0], [0,-1] ]))
+    hacky_cn = CUGate(not_gate, n)
+    proper_cn = build_nc_not(n)
 
-    k = deutsch(f)
+    print(hacky_cn)
+    print(proper_cn)
 
-    #ITS ALIVE WOOOOOOOO
-    print(k)

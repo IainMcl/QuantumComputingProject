@@ -4,9 +4,15 @@ import numpy as np
 import math
 
 
-def grover_gen(oracle):
+def grover_gen(oracle, k=1):
     '''
-    Implements a generic grover search, with the oracle as input
+    Grover search.
+    Inputs: Oracle -> Oracle gate that tags one state
+            k -> number of states tagged
+    Outputs: n -> measured tagged state.
+
+    Still need to update in order to add a general control_n_gate method,
+    instead of the "hacky way"
     '''
 
     # Save the oracle gate and n_qubits
@@ -19,7 +25,8 @@ def grover_gen(oracle):
     not_gate = Not()
     h_gate = Hadamard()
     z = PhaseShift(np.pi)
-    control_z = CUGate(z, n_qubits-1)
+    # control_z = CUGate(z, n_qubits-1)
+    control_z = build_n_not(n_qubits-1)
     h_n_gate = Hadamard(n_qubits+1)
     not_n_gate = Not(n_qubits+1)
     I=IdentityGate()
@@ -34,8 +41,8 @@ def grover_gen(oracle):
 
     # Loop and apply grover operator iteratively
     #n = math.ceil( math.sqrt(n_qubits) )*3
-    n= math.ceil(math.sqrt(2**n_qubits)/2)
-    for i in range(n):
+    n_runs = round( math.pi * math.sqrt(n_qubits/k)/4)
+    for i in range(n_runs):
         #register.plot_register()
         # Add auxilary qubit to register
         register = register * aux
@@ -59,20 +66,31 @@ def grover_gen(oracle):
 
     return measurement
 
-
+## Main and testing###
 def main():
 
-    n=5
+    n=3
     oracle1=oracle_single_tag(n,1)
     oracle2=oracle_single_tag(n,5)
     #oracle3=oracle_single_tag(n,10)
     #oracle4=oracle_single_tag(n,15)
     #oracle=oracle1*oracle2*oracle3*oracle4
     oracle=oracle1*oracle2
-    for i in range(10000):
-        measurement=grover_gen(oracle)
-        #print(measurement)
-        #print("Grover!")
+    n_runs = 500
+    results = np.zeros(n_runs, dtype=int)
+    for i in range(n_runs):
+        measurement=grover_gen(oracle1)
+        results[i] = measurement
+
+    # Return number measured most often together with the accuracy
+    num_of_occurences = np.bincount(results)
+    target_state = np.argmax((num_of_occurences) )
+    accuracy = num_of_occurences[target_state]/n_runs * 100
+
+    print('Grover search ran {} times.'.format(n_runs))
+    print('Most likely state being tagged is {} with {}/100 confidence.'.format(target_state, accuracy))
+
+
 
 
 main()
