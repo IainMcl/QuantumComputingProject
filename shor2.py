@@ -4,38 +4,38 @@ from qc_simulator.qc import *
 class shors:
     """
     only 1 regester 1 qbit number as
-    regester 2 based on first
     all based on thing on git
     """
-    def __init__(self, n_qbits, m_qbits):
+    def __init__(self, n_qbits):
         print("shor")
         QR1 = QuantumRegister(n_qbits)
-        QR2 = QuantumRegister(m_qbits)
-        out = self.shors(QR1, QR2)
+        QR2 = QuantumRegister(1)
+        N_states = QR1.n_states
+        n_qubits = QR1.n_qubits
+        out = self.run(QR1, QR2, N_states, n_qubits)
         return out
         
         
 
-    def QFT(self, QR):
+    def QFT(self, N_states=1):
         """
         maybe to be edited, if statment changed maybe
         """
-        n = QR.n_qubits
         H = Hardamard()
         I = IdentityGate()
         P = PhaseShift()
         M = I
-        for j in range(n):
+        for j in range(N_states):
             if j == 0:
-                M1 = IdentityGate(n-1)%H
+                M1 = IdentityGate(N_states-1)%H
             elif j == n-1:
-                M1 = H%IdentityGate(n-1)
+                M1 = H%IdentityGate(N_states-1)
             else:
-                M1 = IdentityGate(j)%H%IdentityGate(n-1-j)
+                M1 = IdentityGate(j)%H%IdentityGate(N_states-1-j)
             M2 = H
             for i in range(j):
                 M2 = M2%I
-            for i in range(n-j-1):
+            for i in range(N_states-j-1):
                 M2 = P%M2
             M = M2*M1*M
         return M
@@ -59,9 +59,29 @@ class shors:
         M = (I%CUGate(Not())%I)*M
         M = M1*M #CQubit I CQubit TQubit
 
+    def f(self, QR1, QR2, N_states, n_qubits):
+        """
+        x mod N
+        """
+        QR2 = QuantumRegister(n_qubits)
+        for i in range(N_states):
+            QR2[i] = np.mod(i, n_qubits)
+        QR = QR1*QR2
+        return QR
 
-    def Shors(self, QR1, QR2):
+
+    def run(self, QR1, QR2, N_states, n_qubits):
         """
         aplication
         """
-        print("shor")
+        QR1 = Hadamard(n_qubits)*QR1
+        QR = self.f(QR1, QR2, N_states, n_qubits)
+        QTF = self.QTF(N_states)
+        M = QTF % np.identity(N_states)
+        QR = M*QR
+        result = measure(QR)
+        print(result)
+        return result
+
+a = shors(2)
+
