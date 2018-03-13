@@ -11,13 +11,15 @@ class FunctionalOracle(Operator):
         self.n_qubits = n_qubits
         
     def __mul__(self,rhs):
-        if not isinstance(rhs, QuantumRegister):
+        """
+        if False == True: #not isinstance(rhs, QuantumRegister):
             raise TypeError("Cannont Multiply a functional operator by {}".format(type(rhs)))
         else:
-            output = np.zeros(rhs.base_states.size,dtype=complex)
-            for i in range(rhs.base_states.size):
-                output[i] = -1*rhs.base_states[i]*self.function[i]-1*self.function[i]
-                output[i] +=1
+        """
+        output = np.zeros(rhs.base_states.size,dtype=complex)
+        for i in range(rhs.base_states.size):
+            output[i] = -1*rhs.base_states[i]*self.function[i]-1*self.function[i]
+            output[i] +=1
                 
         outReg = QuantumRegister(self.n_qubits)
         outReg.base_states = output
