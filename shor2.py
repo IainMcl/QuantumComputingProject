@@ -40,7 +40,7 @@ class shors:
             M = M2*M1*M
         return M
 
-    def Sum(self, n=3):
+    def SumGate(self, n=3):
         """
         unlikely that it can be applied to n =\=3
         but will keep just in case for now, only used as n = 3
@@ -50,14 +50,18 @@ class shors:
         M = CUGate(Not(),1,1,1)*M
         return M
     
-    def Carry(self, n = 4):
+    def CarryGate(self, n = 4):
         """
         like sum, likely only usable with 4
         """
         I = IdentityGate()
-        M = I%CUGate(Not(),2,1)
+        M = I%build_c_c_not()
         M = (I%CUGate(Not())%I)*M
-        M = M1*M #CQubit I CQubit TQubit
+        M = build_c_c_not(1,0)*M #CQubit I CQubit TQubit
+        return M
+
+    def AdderGate(self):
+        print("addder")
 
     def f(self, QR1, QR2, N_states, n_qubits):
         """
@@ -74,6 +78,7 @@ class shors:
         """
         aplication
         """
+<<<<<<< HEAD
         QR1 = Hadamard(n_qubits)*QR1
         QR = self.f(QR1, QR2, N_states, n_qubits)
         QTF = self.QTF(N_states)
@@ -85,3 +90,6 @@ class shors:
 
 a = shors(2)
 
+=======
+        print("shor")
+>>>>>>> 22777805c4ff62f39c4b792b34fcbaaec248a32a
