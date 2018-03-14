@@ -16,10 +16,10 @@ from scipy.sparse import identity as sparse_identity
 from scipy.sparse import coo_matrix, csc_matrix, lil_matrix, kron
 from math import pi
 import matplotlib.pyplot as plt
-from qutip import *
+#from qutip import *
 
 #import abstract classes
-from qc_simulator.qc_abstract import *
+from qc_abstract import *
 
 class QuantumRegister(QuantumRegisterAbstract):
     """

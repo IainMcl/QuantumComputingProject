@@ -56,6 +56,7 @@ def grover(oracle, k=1):
         register.remove_aux(1/np.sqrt(2))
         
         aux = h_gate * not_gate * QuantumRegister()
+        register.plot_register()
 
     #register.plot_register()
     register.normalise()
