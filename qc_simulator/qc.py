@@ -396,53 +396,6 @@ class IdentityGate(Operator):
     def __init__(self, n_qubits = 1):
         super(IdentityGate, self).__init__(n_qubits, base=np.eye(2,2))
 
-class fGate(Operator):
-    """
-    Class that implements the Uf operator, where f is a black box function f : {0,1}^n -> {0,1}, such that
-    Uf|x>|y> -> |x>|(y + f(x))(mod2)>
-    """
-
-    def __init__(self, n_control, f):
-        """
-        Class constructor
-        :param n_control: number of control qubits
-        :param f: callable black box function
-        """
-        self.f = f
-        # Not sure what to do about base matrix yet
-        super(fGate, self).__init__(n_control + 1)
-
-    def apply(self, control, target):
-        """
-        Returns two new quantum registers one with the altered qubits and one
-        without?
-        :param control:
-        :param target:
-        :return:
-        """
-
-        if control.n_qubits != self.n_qubits - 1:
-            raise ValueError('Number of qubits for control qubit do not match')
-
-        control_qubits = control.qubits
-        target_qubits = target.qubits
-        result = QuantumRegister(target.n_qubits, isempty=True)
-        result_qubits = np.zeros(2 ** result.n_qubits, dtype=complex)
-
-        # Initialise not_gate
-        n_gate = Not()
-
-        for i in range(control.n_states):
-            if self.f(i) == 1 and control_qubits[i] != 0:
-                result = result + n_gate * target
-            elif self.f(i) == 0 and control_qubits[i] != 0:
-                result = result + target
-
-        # normalise at the end
-        result.normalise()
-
-        return result
-
 
 
 def build_c_c_not(num_control_i=0, num_target_i=0):
