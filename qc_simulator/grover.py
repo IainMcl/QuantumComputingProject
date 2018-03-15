@@ -2,7 +2,7 @@ from qc import *
 from functions import *
 import numpy as np
 import math
-
+from matplotlib import pyplot as plt
 
 def grover(oracle, k=1):
     '''
@@ -35,16 +35,14 @@ def grover(oracle, k=1):
 
     # Define the input and ancillary quantum registers
     input_register = Hadamard(n_qubits) * QuantumRegister(n_qubits)
-    
+
     aux = h_gate * not_gate * QuantumRegister()
     register = input_register
-   
+
     # Loop and apply grover operator iteratively
-    #n = math.ceil( math.sqrt(n_qubits) )*3
     n_runs = round( math.pi * math.sqrt(n_qubits/k)/4)
-    
+
     for i in range(n_runs):
-        #register.plot_register()
         # Add auxilary qubit to register
         register = register * aux
 
@@ -54,11 +52,10 @@ def grover(oracle, k=1):
 
         # Extract input register and reset auxillary qubit (hacky way)
         register.remove_aux(1/np.sqrt(2))
-        
-        aux = h_gate * not_gate * QuantumRegister()
+
         register.plot_register()
 
-    #register.plot_register()
+    # Normalise, measure and return results
     register.normalise()
     measurement = register.measure()
 
@@ -71,7 +68,7 @@ def grover(oracle, k=1):
 ## Main and testing###
 if __name__=='__main__':
 
-    n=4
+    n=7
     oracle1=oracle_single_tag(n,4)
     #oracle2=oracle_single_tag(n,5)
     #oracle3=oracle_single_tag(n,10)

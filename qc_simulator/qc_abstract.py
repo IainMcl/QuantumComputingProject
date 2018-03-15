@@ -1,5 +1,14 @@
 """
-Abstract classes for quantum register and quantum operator
+Abstract classes for quantum register and quantum operator. The compulsory
+methods to implement are restricted to:
+    QuantumRegisterAbstract:
+        -Measurement method 
+        -Override of the multiplication operator so that interaction between
+        quantum registers is defined
+        -Print Method
+    OperatorAbstract
+        -Override of multiplication operator so that interaction between
+        operators as well as operators and quantum registers is defined.
 """
 
 from abc import ABC, abstractclassmethod
@@ -43,4 +52,3 @@ class OperatorAbstract(ABC):
         Define tensor product between operators
         """
         pass
-

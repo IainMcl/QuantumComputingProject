@@ -104,13 +104,6 @@ class QuantumRegister(QuantumRegisterAbstract):
 
         return rep
 
-    def shift(self, n):
-        """
-        Implements + n (mod2^n_states) by rolling the qubit array by n.
-        :param n: number of shifts
-        """
-        self.base_states = np.roll(self.base_states, n)
-
 
     def remove_aux(self, a):
         """
@@ -372,22 +365,6 @@ class CUGate(Operator):
 
             return c_gate
 
-    def apply(self, control, target):
-        """
-        Applies the "V" gate to the target register according to the values in the control register
-        :param control: control register
-        :param target: target register
-        :return: result -> resulting quantum register
-        """
-        result = QuantumRegister(target.n_qubits)
-
-        # Base is applied only if the last element of the qubits np array is non zero.
-        if control.qubits[-1] != 0:
-            result = self.base * target
-        else:
-            result = target
-
-        return result
 
 class IdentityGate(Operator):
     """

@@ -234,4 +234,3 @@ if __name__ == '__main__':
 
     print(hacky_cn)
     print(proper_cn)
-
