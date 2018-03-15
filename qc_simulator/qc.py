@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt
 #from qutip import *
 
 #import abstract classes
-from qc_abstract import *
+from qc_simulator.qc_abstract import *
 
 class QuantumRegister(QuantumRegisterAbstract):
     """
