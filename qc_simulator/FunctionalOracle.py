@@ -10,7 +10,7 @@ class FunctionalOracle(Operator):
     def __init__(self, oracle_function, n_qubits):
         self.function = oracle_function
         self.n_qubits = n_qubits
-        
+
     def __mul__(self,rhs):
         """
         if False == True: #not isinstance(rhs, QuantumRegister):
@@ -27,13 +27,13 @@ class FunctionalOracle(Operator):
             output[i] = -1*rhs.base_states[i]*self.function[i]-1*self.function[i]
             output[i] +=1
             '''
-                
+
         outReg = QuantumRegister(self.n_qubits)
         outReg.base_states = output
         outReg.normalise()
         return outReg
-                
-                
+
+
 class OracleFunction():
     def __init__(self, x):
         self.x = x
@@ -44,7 +44,7 @@ class OracleFunction():
             return 1
         else:
             return 0
-        
+
 class Oracle4k1():
     # If a prime is of form 4k+1, it can be expressed as a^2 + b^2 for only one set of a and b
     # Oracle 4k1 finds those two values
@@ -69,20 +69,20 @@ if __name__ == "__main__":
     q = QuantumRegister(5)
     H = Hadamard(5)
     q = H*q
-    
+
     o = OracleFunction(10)
     f = FunctionalOracle(o,5)
-    
+
     o = Oracle4k1(41)
     f = FunctionalOracle(o,n)
     print("\n")
     out = f*q
-    print(out) 
+    print(out)
     print("\n")
     '''
 
 
-    
+
     n=5
     o = Oracle4k1(41)
     #o = OracleFunction(4)
@@ -95,4 +95,3 @@ if __name__ == "__main__":
     for i in range(40):
         reg = grover(f, k=2)
         print(reg[0].measure())
-    

@@ -320,11 +320,10 @@ class CUGate(Operator):
         Class constructor.
         :param base: base Operator U
         :param n_control: number of control qubits
-        :param n_target: number of target qubits
         :param num_of_i: number of empty lines between control and target qubit.
         """
         self.n_control = n_control
-        self.n_qubits = 1 + self.n_control
+        self.n_qubits = 1 + self.n_control + num_of_i
         self.size = 2 ** (self.n_control + 1 + num_of_i)
         self.num_of_i = num_of_i
         self.matrix = self.__create_sparse_matrix(base)
@@ -426,7 +425,7 @@ class fGate(Operator):
 def build_c_c_not(num_control_i=0, num_target_i=0):
     """
     Builds a toffoli gate, given the number of I operators between the second control and the target qubit from the
-    first control. By default these distances are set to 1 and 2 respectively.
+    first control. By default these distances are set to 0 and 0 respectively.
     :param num_control_i:
     :param num_target_i:
     :return: toffoli, toffoli gate (Operator Object)
@@ -435,38 +434,41 @@ def build_c_c_not(num_control_i=0, num_target_i=0):
     # Initialise basis gates
     h_gate = Hadamard()
     I = IdentityGate()
+    I_target = IdentityGate(num_target_i + 1)
+    I_control = IdentityGate(num_control_i + 1)
+    I_total = IdentityGate(num_target_i + num_control_i + 2)
+
     v_gate = PhaseShift(np.pi / 2)
-    control_v = CUGate(v_gate, num_of_i=num_target_i - num_control_i)
-    control_not = CUGate(Not(), num_of_i=num_control_i)
+    c_v_short = CUGate(v_gate, num_of_i=num_target_i)
+    c_v_long = CUGate(v_gate, num_of_i=num_target_i+num_control_i + 1)
+
+    c_not = CUGate(Not(), num_of_i=num_control_i)
     v3 = v_gate * v_gate * v_gate
-    control_v3 = CUGate(v3, num_of_i=num_target_i - num_control_i)
-    c_I_v_gate = CUGate(v_gate, num_of_i=num_control_i + num_target_i + 1)
+    c_v3 = CUGate(v3, num_of_i=num_target_i)
 
     # Build circuit
-    toffoli = (I % I % h_gate) * c_I_v_gate * (control_not % I) * (I % control_v3) * \
-              (control_not % I) * (I % control_v) * (I % I % h_gate)
+    toffoli = (I_total % h_gate) * (I_control % c_v_short) * (c_not % I_target)\
+     * (I_control % c_v3) * (c_not % I_target) * (c_v_long) * (I_total % h_gate)
+
+    toffoli = (I_total % h_gate) * c_v_long * (c_not % I_target)\
+     * (I_control % c_v3) * (c_not % I_target) * (I_control % c_v_short) * (I_total % h_gate)
 
     return toffoli
 
 
 if __name__ == '__main__':
+    # test build_c_c_not
+    not_gate = Not()
+    I = IdentityGate()
 
-    #testing the matrix oracle
-    def f(x):
-        if x==1 or x == 2: 
-            return 1
-        else:
-            return 0
+    # make qubits 0 and 2, 1.
+    reg = (not_gate % I % not_gate % I % I) * QuantumRegister(5)
+    print(reg)
 
-    test_oracle = fGate(f, 2)
-    print(test_oracle)
-    q_register = Hadamard(2) * QuantumRegister(2)
-    aux = Hadamard() * Not() * QuantumRegister()
+    # define c2-not gate with qubits 0 and 2 as control and qubit 4 as target
+    c2_not = build_c_c_not(1, 1)
 
-    test = q_register * aux
-    print(test)
+    # Apply the gate
+    reg = c2_not * reg
 
-    test1 = test_oracle * test
-    print(test1)
-    test1.remove_aux(1/np.sqrt(2))
-    print(test1)
+    print(reg)
