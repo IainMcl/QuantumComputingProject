@@ -6,7 +6,7 @@ Created on Tue Feb 20 15:22:28 2018
 """
 #!/usr/bin/env python3
 
-from qc_simulator.qc import *
+from qc import *
 import numpy as np
 import math
 
@@ -78,8 +78,6 @@ def oracle_single_tag(n, tag):
     return oracle_gate
 
 
-
-
     # Define middle column of gates
     gates[num_of_gates-1] = IdentityGate(n_qubits-3) % c_c_z
 
@@ -122,13 +120,37 @@ def build_c_c_not(num_control_i=0, num_target_i=0):
     return toffoli
 
 
+def flip_not_gate(gate):
+    """
+    Function that flips a control not gate. It is up to the user to provide
+    the correct gates. This function does not work for multiple controlled
+    not and or other controlled-U gates.  
+    :param gate: CUgate control-not gate.
+    :return flipped_gate: the flipped gate
+    """
+    n = gate.n_qubits
+    if n == 2:
+        h_gate = Hadamard(2)
+        flipped_gate = (h_gate ) * gate * (h_gate)
+        return flipped_gate
+    elif n > 2:
+        h_gate = Hadamard()
+        I = IdentityGate(n-2)
+        flipped_gate = (h_gate % I % h_gate) * gate * (h_gate % I % h_gate)
+        return flipped_gate
+
+
+
+
+
 
 if __name__ == '__main__':
-    n = 3
+    # testing flip gate function
     not_gate = Not()
+    c_not = CUGate(not_gate,num_of_i=1)
+    print(c_not)
 
-    hacky_cn = CUGate(not_gate, n)
-    proper_cn = build_nc_not(n)
+    # flip the gate
+    flipped = flip_gate(c_not)
 
-    print(hacky_cn)
-    print(proper_cn)
+    print(flipped)
