@@ -16,10 +16,11 @@ from scipy.sparse import identity as sparse_identity
 from scipy.sparse import coo_matrix, csc_matrix, lil_matrix, kron
 from math import pi
 import matplotlib.pyplot as plt
+from copy import deepcopy
 #from qutip import *
 
 #import abstract classes
-from qc_simulator.qc_abstract import *
+from qc_abstract import *
 
 class QuantumRegister(QuantumRegisterAbstract):
     """
@@ -314,7 +315,7 @@ class CUGate(Operator):
     Class that implements a controlled U gate.
     """
 
-    def __init__(self, base, n_control=1, n_target=1, num_of_i=0):
+    def __init__(self, base, n_control=1, num_of_i=0):
         """
         Class constructor.
         :param base: base Operator U
@@ -323,9 +324,8 @@ class CUGate(Operator):
         :param num_of_i: number of empty lines between control and target qubit.
         """
         self.n_control = n_control
-        self.n_target = n_target
-        self.n_qubits = self.n_target + self.n_control
-        self.size = 2 ** (self.n_control + self.n_target + num_of_i)
+        self.n_qubits = 1 + self.n_control
+        self.size = 2 ** (self.n_control + 1 + num_of_i)
         self.num_of_i = num_of_i
         self.matrix = self.__create_sparse_matrix(base)
 
@@ -345,9 +345,10 @@ class CUGate(Operator):
         # Create full sparse identity matrix
         sparse_matrix = sparse_identity(self.size, dtype=complex, format='lil')
 
+
         if self.num_of_i == 0:
             # "Put" dense hadamard matrix in sparse matrix
-            target_states = 2 ** self.n_target
+            target_states = 2
             sub_matrix_index = self.size - target_states
             sparse_matrix[sub_matrix_index:, sub_matrix_index:] = base_matrix
 
@@ -365,6 +366,15 @@ class CUGate(Operator):
 
             return c_gate
 
+# class CNotGate(CUGate):
+#     """
+#     Class that implements controlled-not gate
+#     """
+#
+#     def __init__(self, num_of_i):
+#         self.base = Not()
+#         self.n_control = 1
+#         super(CNotGate, self).__init__(self.base, self.n_control, num_of_i)
 
 class IdentityGate(Operator):
     """
@@ -372,6 +382,44 @@ class IdentityGate(Operator):
     """
     def __init__(self, n_qubits = 1):
         super(IdentityGate, self).__init__(n_qubits, base=np.eye(2,2))
+
+class fGate(Operator):
+    """
+    Class that implements an f-Gate, Uf. The action of Uf is defined as follows
+    Uf*|x>*|y> = |x>*|(y+f(x))%2>
+    """
+    def __init__(self, f, n):
+        """
+        Class constructor:
+        :param f: callable function f defined from {0,1}^n -> {0,1}
+        :param n: number of states n acts on
+        """
+        self.f = f
+        self.n_qubits = n + 1
+        self.size = 2**(self.n_qubits)
+        self.matrix = self.__f_matrix()
+
+    def __f_matrix(self):
+        """
+        Constructs a numpy matrix that corresponds to the function
+        evaluation. The matrix is then converted to a sparse array.
+        """
+        matrix_full = np.eye(self.size, self.size)
+        n = int(self.size/2)
+        f = self.f
+
+        for i in range(n):
+            # Loop over the rows 2 at a time and exchange only if f(x)
+            # returns 1.
+            if f(i) == 1:
+                print('Switching rows {} and {}.'.format(2*i, 2*i+1))
+                temp = deepcopy(matrix_full[2*i,:])
+                temp2 = deepcopy(matrix_full[2*i + 1,:])
+                matrix_full[2*i,:] = temp2
+                matrix_full[2*i + 1, : ] = temp
+
+        return csc_matrix(matrix_full)
+
 
 
 
@@ -384,8 +432,7 @@ def build_c_c_not(num_control_i=0, num_target_i=0):
     :return: toffoli, toffoli gate (Operator Object)
     """
 
-   # add statement that checks whether control2 <= target
-
+    # Initialise basis gates
     h_gate = Hadamard()
     I = IdentityGate()
     v_gate = PhaseShift(np.pi / 2)
@@ -400,3 +447,26 @@ def build_c_c_not(num_control_i=0, num_target_i=0):
               (control_not % I) * (I % control_v) * (I % I % h_gate)
 
     return toffoli
+
+
+if __name__ == '__main__':
+
+    #testing the matrix oracle
+    def f(x):
+        if x==1 or x == 2: 
+            return 1
+        else:
+            return 0
+
+    test_oracle = fGate(f, 2)
+    print(test_oracle)
+    q_register = Hadamard(2) * QuantumRegister(2)
+    aux = Hadamard() * Not() * QuantumRegister()
+
+    test = q_register * aux
+    print(test)
+
+    test1 = test_oracle * test
+    print(test1)
+    test1.remove_aux(1/np.sqrt(2))
+    print(test1)
