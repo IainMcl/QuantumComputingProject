@@ -103,3 +103,4 @@ ENV/
 
 #other stuff
 testing_personal.py
+.idea/
