@@ -2,7 +2,7 @@
 Abstract classes for quantum register and quantum operator. The compulsory
 methods to implement are restricted to:
     QuantumRegisterAbstract:
-        -Measurement method 
+        -Measurement method
         -Override of the multiplication operator so that interaction between
         quantum registers is defined
         -Print Method
@@ -13,7 +13,7 @@ methods to implement are restricted to:
 
 from abc import ABC, abstractclassmethod
 
-class QuantumRegisterAbstract(ABC):
+class AbstractQuantumRegister(ABC):
 
 
     @abstractclassmethod
@@ -36,7 +36,7 @@ class QuantumRegisterAbstract(ABC):
         Define print method for the quantum register
         """
 
-class OperatorAbstract(ABC):
+class AbstractOperator(ABC):
 
     @abstractclassmethod
     def __mul__(self, rhs):

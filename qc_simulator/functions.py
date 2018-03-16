@@ -124,7 +124,7 @@ def flip_not_gate(gate):
     """
     Function that flips a control not gate. It is up to the user to provide
     the correct gates. This function does not work for multiple controlled
-    not and or other controlled-U gates.  
+    not and or other controlled-U gates.
     :param gate: CUgate control-not gate.
     :return flipped_gate: the flipped gate
     """
@@ -146,11 +146,4 @@ def flip_not_gate(gate):
 
 if __name__ == '__main__':
     # testing flip gate function
-    not_gate = Not()
-    c_not = CUGate(not_gate,num_of_i=1)
-    print(c_not)
-
-    # flip the gate
-    flipped = flip_gate(c_not)
-
-    print(flipped)
+    print(type(flip_not_gate))

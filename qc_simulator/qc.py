@@ -21,8 +21,9 @@ from copy import deepcopy
 
 #import abstract classes
 from qc_abstract import *
+#from qc import
 
-class QuantumRegister(QuantumRegisterAbstract):
+class QuantumRegister(AbstractQuantumRegister):
     """
     Quantum register class. The quantum register is saved as a complex
     numpy array. Each element of the array is the amplitude of the
@@ -106,9 +107,11 @@ class QuantumRegister(QuantumRegisterAbstract):
         return rep
 
 
-    def remove_aux(self, a):
+    def remove_aux(self, a=1/np.sqrt(2)):
         """
-        Removes auxillary qubit from quantum register. Requires previous knowledge of auxilary qubit.
+        Removes auxillary qubit from quantum register.
+        Requires previous knowledge of auxilary qubit. Usage is meant for phase
+        kickback operations.
         :param a:
         """
 
@@ -160,7 +163,7 @@ class QuantumRegister(QuantumRegisterAbstract):
         #b.add_states(objs)
         b.show()
 
-class Operator(OperatorAbstract):
+class Operator(AbstractOperator):
     """
     Class that defines a quantum mechanical operator. Implments abstract class
     OperatorAbstract. The operator is stored as a square sparse matrix.
@@ -174,10 +177,9 @@ class Operator(OperatorAbstract):
         """
         self.n_qubits = n_qubits
         self.size = 2 ** n_qubits
-        self.matrix = self.__create_full_matrix(self.n_qubits, base)
-        # self.sparce_matrix = coo_matrix(np.zeros( ( self.size, self.size) ) )  not sure that we need thsi right now
+        self.matrix = self.__create_sparse_matrix(self.n_qubits, base)
 
-    def __create_full_matrix(self, n_qubits, base):
+    def __create_sparse_matrix(self, n_qubits, base):
         """
         Create matrix by taking successive tensor producs between for the total
         number of qubits.
@@ -253,6 +255,7 @@ class Operator(OperatorAbstract):
         :param other: Operator object, right hand side
         :return: Operator object
         """
+
         # Tensor product between the two operators
         if isinstance(other, Operator):
             result = Operator(self.n_qubits + other.n_qubits)
@@ -418,57 +421,3 @@ class fGate(Operator):
                 matrix_full[2*i + 1, : ] = temp
 
         return csc_matrix(matrix_full)
-
-
-
-
-def build_c_c_not(num_control_i=0, num_target_i=0):
-    """
-    Builds a toffoli gate, given the number of I operators between the second control and the target qubit from the
-    first control. By default these distances are set to 0 and 0 respectively.
-    :param num_control_i:
-    :param num_target_i:
-    :return: toffoli, toffoli gate (Operator Object)
-    """
-
-    # Initialise basis gates
-    h_gate = Hadamard()
-    I = IdentityGate()
-    I_target = IdentityGate(num_target_i + 1)
-    I_control = IdentityGate(num_control_i + 1)
-    I_total = IdentityGate(num_target_i + num_control_i + 2)
-
-    v_gate = PhaseShift(np.pi / 2)
-    c_v_short = CUGate(v_gate, num_of_i=num_target_i)
-    c_v_long = CUGate(v_gate, num_of_i=num_target_i+num_control_i + 1)
-
-    c_not = CUGate(Not(), num_of_i=num_control_i)
-    v3 = v_gate * v_gate * v_gate
-    c_v3 = CUGate(v3, num_of_i=num_target_i)
-
-    # Build circuit
-    toffoli = (I_total % h_gate) * (I_control % c_v_short) * (c_not % I_target)\
-     * (I_control % c_v3) * (c_not % I_target) * (c_v_long) * (I_total % h_gate)
-
-    toffoli = (I_total % h_gate) * c_v_long * (c_not % I_target)\
-     * (I_control % c_v3) * (c_not % I_target) * (I_control % c_v_short) * (I_total % h_gate)
-
-    return toffoli
-
-
-if __name__ == '__main__':
-    # test build_c_c_not
-    not_gate = Not()
-    I = IdentityGate()
-
-    # make qubits 0 and 2, 1.
-    reg = (not_gate % I % not_gate % I % I) * QuantumRegister(5)
-    print(reg)
-
-    # define c2-not gate with qubits 0 and 2 as control and qubit 4 as target
-    c2_not = build_c_c_not(1, 1)
-
-    # Apply the gate
-    reg = c2_not * reg
-
-    print(reg)
