@@ -6,7 +6,7 @@ Created on Tue Feb 20 15:22:28 2018
 """
 #!/usr/bin/env python3
 
-from qc import *
+from qc_simula  tor.qc import *
 import numpy as np
 import math
 
@@ -45,7 +45,16 @@ def GetQuBitofValue(theta, phi):
 
 
 def oracle_single_tag(n, tag):
+    """
+    Function that builds a quantum circuit representing an oragle that tags
+    a single state.
+    :param n: <int> number of qubits the Operator operates on
+    :param tag: <int> tagged state
+    :return oracle_gate: <Operator> oracle gate
+    """
+
     n_qubits=n+1
+
     # Convert tag to binary string
     bina_str=np.binary_repr(tag, n)
     # Convert binary string to list of integers

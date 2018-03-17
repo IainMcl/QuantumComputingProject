@@ -20,7 +20,7 @@ from copy import deepcopy
 #from qutip import *
 
 #import abstract classes
-from qc_abstract import *
+from qc_simulator.qc_abstract import *
 #from qc import
 
 class QuantumRegister(AbstractQuantumRegister):
@@ -343,9 +343,13 @@ class CUGate(Operator):
 
         # Create sparse hadamard matrix
         base_matrix = lil_matrix(base.matrix)
+        print('Size of base sparse matrix is {}.'.format(base_matrix.toarray().shape))
 
         # Create full sparse identity matrix
         sparse_matrix = sparse_identity(self.size, dtype=complex, format='lil')
+        print('Size of full sparse matrix is {}.'.format(sparse_matrix.toarray().shape))
+        # print(self.size)
+        # print(base.matrix.toarray().size)
 
 
         if self.num_of_i == 0:
@@ -360,10 +364,11 @@ class CUGate(Operator):
             return c_gate
         else:
             # Put sub matrix in corner of big matrix
-            i_sparse = sparse_identity(2 ** self.num_of_i, format='lil')
-            bottom_right_quarter = kron(i_sparse, base.matrix)
+            i_sparse = sparse_identity(2 ** (self.num_of_i), format='lil')
+            bottom_right_quarter = kron(i_sparse, base.matrix, format='lil')
 
-            sparse_matrix[int(self.size / 2):, int(self.size / 2):] = bottom_right_quarter
+            n = int(bottom_right_quarter.shape[0])
+            sparse_matrix[-n:, -n:] = bottom_right_quarter
             c_gate = csc_matrix(sparse_matrix)
 
             return c_gate
