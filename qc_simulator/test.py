@@ -65,13 +65,6 @@ def build_rev_c_not(num_of_i=0):
     return gate
     
 
-
-
-    
-    
-
-
-
 def build_3qubit_encode_gate():
     I=IdentityGate()
     c_not=CUGate(Not())
@@ -115,15 +108,133 @@ def build_9qubit_encode_gate():
     
     return gate
 
-#def build_9qubit_
+'''
+def build_9qubit_ancilla_gate():
+    h_gate =  Hadamard(9)
+    rev_c_not_1i = build_rev_c_not(num_of_i = 1) 
+    rev_c_not_2i = build_rev_c_not(num_of_i = 2) 
+    rev_c_not_3i = build_rev_c_not(num_of_i = 3) 
+    rev_c_not_4i = build_rev_c_not(num_of_i = 4) 
+    rev_c_not_5i = build_rev_c_not(num_of_i = 5) 
+    rev_c_not_6i = build_rev_c_not(num_of_i = 6) 
+    rev_c_not_7i = build_rev_c_not(num_of_i = 7) 
+    rev_c_not_8i = build_rev_c_not(num_of_i = 8) 
+    I = IdentityGate()
+    
+    gate= (h_gate % IdentityGate(2))\
+    * (IdentityGate(8) % rev_c_not_1i) * (IdentityGate(7) % rev_c_not_2i)\
+    * (IdentityGate(6) % rev_c_not_3i) * (IdentityGate(5) % rev_c_not_4i)\
+    * (IdentityGate(4) % rev_c_not_5i) * (IdentityGate(3) % rev_c_not_6i)\
+    * (IdentityGate(5) % rev_c_not_3i % I) * (IdentityGate(4) % rev_c_not_4i % I)\
+    * (IdentityGate(3) % rev_c_not_5i % I) * (IdentityGate(2) % rev_c_not_6i % I)\
+    * (I % rev_c_not_7i % I) * (rev_c_not_8i % I) * (h_gate % IdentityGate(2))
+    
+    return gate
+'''
 
 
+def build_9qubit_ancilla_gate():
+    h_gate =  Hadamard(9)
+    N =Not()
+    c_not_1i = CUGate(N, num_of_i = 1) 
+    c_not_2i = CUGate(N, num_of_i = 2) 
+    c_not_3i = CUGate(N, num_of_i = 3) 
+    c_not_4i = CUGate(N, num_of_i = 4) 
+    c_not_5i = CUGate(N, num_of_i = 5) 
+    c_not_6i = CUGate(N, num_of_i = 6) 
+    c_not_7i = CUGate(N, num_of_i = 7) 
+    c_not_8i = CUGate(N, num_of_i = 8) 
+    I = IdentityGate()
+    
+    gate= (h_gate % IdentityGate(2))\
+    * (IdentityGate(8) % c_not_1i) * (IdentityGate(7) % c_not_2i)\
+    * (IdentityGate(6) % c_not_3i) * (IdentityGate(5) % c_not_4i)\
+    * (IdentityGate(4) % c_not_5i) * (IdentityGate(3) % c_not_6i)\
+    * (IdentityGate(5) % c_not_3i % I) * (IdentityGate(4) % c_not_4i % I)\
+    * (IdentityGate(3) % c_not_5i % I) * (IdentityGate(2) % c_not_6i % I)\
+    * (I % c_not_7i % I) * (c_not_8i % I) * (h_gate % IdentityGate(2))
+    
+    return gate
+
+
+'''
+def build_9qubit_correction_gate():
+    I = IdentityGate()
+    z = PhaseShift(np.pi)
+    c_c_z_8i = build_c_c_z(num_control_i=8)
+    c_c_z_4i = build_c_c_z(num_control_i=4)
+    c_c_z_1i = build_c_c_z(num_control_i=1)
+    c_z_8i = CUGate(z, n_control=1, num_of_i=8)
+    c_z_2i = CUGate(z, n_control=1, num_of_i=2)
+    
+    gate = (c_z_8i % I) * (c_c_z_8i) * (IdentityGate(4) % c_c_z_4i)\
+    * (IdentityGate(7) % c_z_2i) * (IdentityGate(7) % c_c_z_1i)
+    
+    return gate
+'''
+
+
+
+def build_9qubit_correction_gate():
+    I = IdentityGate()
+    z = PhaseShift(np.pi)
+    c_c_z_8i = CUGate(z, n_control=2, num_of_i=8)
+    c_c_z_4i = CUGate(z, n_control=2, num_of_i=4)
+    c_c_z_1i = CUGate(z, n_control=2, num_of_i=1)
+    c_z_8i = CUGate(z, n_control=1, num_of_i=8)
+    c_z_2i = CUGate(z, n_control=1, num_of_i=2)
+    
+    gate = (c_z_8i % I) * (c_c_z_8i) * (IdentityGate(4) % c_c_z_4i)\
+    * (IdentityGate(7) % c_z_2i) * (IdentityGate(7) % c_c_z_1i)
+    
+    return gate
+
+
+I=IdentityGate()
+n=Not()
+reg=(n%n%I%n)* QuantumRegister(4)
+print(reg)
+z = PhaseShift(np.pi)
+c_c_z = CUGate(z, n_control=2, num_of_i=1)
+reg=c_c_z*reg
+
+
+print(reg)
+
+
+'''
 gate = build_9qubit_encode_gate()
 reg1 = Not()* QuantumRegister(1)
 reg2 = QuantumRegister(8)
 reg=reg1*reg2
 reg= gate*reg
-I=IdentityGate()
+reg3=QuantumRegister(2)
+reg=reg*reg3
+gate2=build_9qubit_ancilla_gate()
+z_gate = PhaseShift(np.pi)
+
+print(reg)
+print("\n")
+reg = (IdentityGate(3) % z_gate % IdentityGate(7)) * reg
+print(reg)
+print("\n")
+
+
+
+reg=gate2*reg
+
+print(reg)
+print("\n")
+
+gate3= build_9qubit_correction_gate()
+
+reg = gate3 * reg
+
+print(reg)
+'''
+
+
+
 '''
 H=Hadamard()
 N=Not()
@@ -157,7 +268,7 @@ correction = build_3qubit_correction_gate()
 reg = correction * reg 
 
 '''
-print(reg)
+
 
 
 

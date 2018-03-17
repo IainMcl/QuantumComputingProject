@@ -1,5 +1,5 @@
-from qc_simulator.qc import *
-from qc_simulator.functions import *
+from qc import *
+from functions import *
 import numpy as np
 import math
 from matplotlib import pyplot as plt
@@ -40,10 +40,14 @@ def grover(oracle, k=1):
     register = input_register
 
     # Loop and apply grover operator iteratively
-    n_runs = round( math.pi * math.sqrt(n_qubits/k)/4)
+    #n_runs = round( math.pi * math.sqrt(n_qubits/k)/4)
+
+    n_runs = round( ((math.pi/4)/math.sqrt(k))*2**(n_qubits/2)) 
+    print(n_runs)
 
     for i in range(n_runs):
         # Add auxilary qubit to register
+        #register.plot_register()
         register = register * aux
 
         # Apply grover iteration
@@ -53,9 +57,10 @@ def grover(oracle, k=1):
         # Extract input register and reset auxillary qubit (hacky way)
         register.remove_aux(1/np.sqrt(2))
 
-        register.plot_register()
+        
 
     # Normalise, measure and return results
+    #register.plot_register()
     register.normalise()
     measurement = register.measure()
 
@@ -70,26 +75,28 @@ if __name__=='__main__':
 
     n=7
     oracle1=oracle_single_tag(n,4)
-    #oracle2=oracle_single_tag(n,5)
+    oracle2=oracle_single_tag(n,5)
     #oracle3=oracle_single_tag(n,10)
     #oracle4=oracle_single_tag(n,15)
     #oracle=oracle1*oracle2*oracle3*oracle4
-    #oracle=oracle1*oracle2
+    oracle1=oracle1*oracle2
 
-    reg = grover(oracle1)
-    print(reg[0].measure())
+    #reg = grover(oracle1)
+    #print(reg[0].measure())
+    #measurement=grover(oracle1, k=2)
+    #print(measurement[1])
+    
 
+    n_runs = 50
+    results = np.zeros(n_runs, dtype=int)
+    for i in range(n_runs):
+        measurement=grover(oracle1,k=2)
+        results[i] = measurement[1]
 
-    # n_runs = 50
-    # results = np.zeros(n_runs, dtype=int)
-    # for i in range(n_runs):
-    #     measurement=grover(oracle1)
-    #     results[i] = measurement
-    #
-    # # Return number measured most often together with the accuracy
-    # num_of_occurences = np.bincount(results)
-    # target_state = np.argmax((num_of_occurences) )
-    # accuracy = num_of_occurences[target_state]/n_runs * 100
-    #
-    # print('Grover search ran {} times.'.format(n_runs))
-    # print('Most likely state being tagged is {} with {}/100 confidence.'.format(target_state, accuracy))
+    # Return number measured most often together with the accuracy
+    num_of_occurences = np.bincount(results)
+    target_state = np.argmax((num_of_occurences) )
+    accuracy = num_of_occurences[target_state]/n_runs * 100
+    
+    print('Grover search ran {} times.'.format(n_runs))
+    print('Most likely state being tagged is {} with {}/100 confidence.'.format(target_state, accuracy))
