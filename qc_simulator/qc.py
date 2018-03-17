@@ -326,14 +326,14 @@ class CUGate(Operator):
         :param num_of_i: number of empty lines between control and target qubit.
         """
         self.n_control = n_control
-        self.n_qubits = 1 + self.n_control + num_of_i
-        self.size = 2 ** (self.n_control + 1 + num_of_i)
+        self.n_qubits = 1 + self.n_control + np.sum(num_of_i)
+        self.size = 2 ** (self.n_qubits)
         self.num_of_i = num_of_i
         self.matrix = self.__create_sparse_matrix(base)
 
     def __create_sparse_matrix(self, base):
         """
-        Creates spasrse matrix according to how many target qubits we have.
+        Creates sparse matrix according to how many target qubits we have.
         Matrix is constructed using the 'lil' format, which is better for
         incremental construction of sparse matrices and is then converted
         to 'csc' format, which is better for operations between matrices
@@ -343,45 +343,56 @@ class CUGate(Operator):
 
         # Create sparse hadamard matrix
         base_matrix = lil_matrix(base.matrix)
-        print('Size of base sparse matrix is {}.'.format(base_matrix.toarray().shape))
 
         # Create full sparse identity matrix
         sparse_matrix = sparse_identity(self.size, dtype=complex, format='lil')
-        print('Size of full sparse matrix is {}.'.format(sparse_matrix.toarray().shape))
-        # print(self.size)
-        # print(base.matrix.toarray().size)
 
-
-        if self.num_of_i == 0:
+        if np.sum(self.num_of_i) == 0:
             # "Put" dense hadamard matrix in sparse matrix
             target_states = 2
             sub_matrix_index = self.size - target_states
             sparse_matrix[sub_matrix_index:, sub_matrix_index:] = base_matrix
 
-            # Convert to csc format
-            c_gate = csc_matrix(sparse_matrix)
-
-            return c_gate
+            # Convert to csc format and return
+            return csc_matrix(sparse_matrix)
         else:
-            # Put sub matrix in corner of big matrix
-            i_sparse = sparse_identity(2 ** (self.num_of_i), format='lil')
-            bottom_right_quarter = kron(i_sparse, base.matrix, format='lil')
+            # Find indices of contro qubits
+            control_qubit_indices = self.__find_control_qubits()
 
-            n = int(bottom_right_quarter.shape[0])
-            sparse_matrix[-n:, -n:] = bottom_right_quarter
-            c_gate = csc_matrix(sparse_matrix)
+            # Loop over the columns and check to see if the corresponding states
+            # have all the control states set to 1
+            for i in range(int(self.size/2), self.size):
+                # Extract binary version of number
+                bin_i_str = np.binary_repr(i, self.n_qubits)
 
-            return c_gate
+                # Convert to numpy array
+                bin_i = np.array([int(x) for x in bin_i_str])
 
-# class CNotGate(CUGate):
-#     """
-#     Class that implements controlled-not gate
-#     """
-#
-#     def __init__(self, num_of_i):
-#         self.base = Not()
-#         self.n_control = 1
-#         super(CNotGate, self).__init__(self.base, self.n_control, num_of_i)
+                # Return indexes of elements equal to 1
+                indices_of_ones = np.flatnonzero(bin_i)
+
+                # Check if control qubits are set to 1
+                if np.array_equal(indices_of_ones, control_qubit_indices):
+                    # If true then then put base matrix onto diagonal
+                    sparse_matrix[i:i+2, i:i+2] = base_matrix
+
+            return csc_matrix(sparse_matrix)
+
+    def __find_control_qubits(self):
+        """
+        Returns an array containing the index of the control qubits
+        :return control_qubit_indices: <np.array> Inidces of control qubits
+        """
+        control_qubit_indices = np.arange(self.n_control)
+
+        # Exclude the item of self.num_of_i because it's the number of empty
+        # lines between the last control and first target qubit
+        control_qubit_indices[1:] = control_qubit_indices[1:] + self.num_of_i[:-1]
+
+        return control_qubit_indices
+
+
+
 
 class IdentityGate(Operator):
     """
