@@ -364,7 +364,7 @@ class CUGate(Operator):
 
             # Loop over the columns and check to see if the corresponding states
             # have all the control states set to 1
-            for i in range(int(self.size/2), self.size):
+            for i in range(int(self.size/2), self.size,2):
                 # Extract binary version of number
                 bin_i_str = np.binary_repr(i, self.n_qubits)
 
@@ -375,7 +375,8 @@ class CUGate(Operator):
                 indices_of_ones = np.flatnonzero(bin_i)
 
                 # Check if control qubits are set to 1
-                if np.array_equal(indices_of_ones, control_qubit_indices):
+                control_qubit_check = np.isin(control_qubit_indices, indices_of_ones)
+                if np.all(control_qubit_check):
                     # If true then then put base matrix onto diagonal
                     sparse_matrix[i:i+2, i:i+2] = base_matrix
 
@@ -386,13 +387,16 @@ class CUGate(Operator):
         Returns an array containing the index of the control qubits
         :return control_qubit_indices: <np.array> Inidces of control qubits
         """
-        control_qubit_indices = np.arange(self.n_control)
+        if self.n_control == 1:
+            return np.array([0])
+        else:
+            control_qubit_indices = np.arange(self.n_control)
 
-        # Exclude the item of self.num_of_i because it's the number of empty
-        # lines between the last control and first target qubit
-        control_qubit_indices[1:] = control_qubit_indices[1:] + self.num_of_i[:-1]
+            # Exclude the item of self.num_of_i because it's the number of empty
+            # lines between the last control and first target qubit
+            control_qubit_indices[1:] = control_qubit_indices[1:] + self.num_of_i[:-1]
 
-        return control_qubit_indices
+            return control_qubit_indices
 
 
 
