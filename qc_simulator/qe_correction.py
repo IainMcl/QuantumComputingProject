@@ -149,6 +149,7 @@ def build_9qubit_correction_gate():
     return gate
 
 ################################################## Run #######################
+if __name__ == '__main__':
 #
 # I=IdentityGate()
 # n=Not()

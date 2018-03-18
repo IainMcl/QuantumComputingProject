@@ -40,33 +40,34 @@ def grover(oracle, k=1):
     # Loop and apply grover operator iteratively
     #n_runs = round( math.pi * math.sqrt(n_qubits/k)/4)
 
-    n_runs = round( ((math.pi/4)/math.sqrt(k))*2**(n_qubits/2)) 
+    n_runs = round( ((math.pi/4)/math.sqrt(k))*2**(n_qubits/2))
     print(n_runs)
-    
+
     # Add auxilary qubit to register
     register = register * aux
 
     for i in range(n_runs):
-        
+
         #register.plot_register()
 
         # Apply grover iteration
         register=oracle * register
         register = W * register
 
-        
 
-    #register.plot_register() 
+
+    #register.plot_register()
     # Extract input register and reset auxillary qubit (hacky way)
-    register.remove_aux(1/np.sqrt(2))
+    # register.remove_aux(1/np.sqrt(2))
+    input, aux = register.split(n_qubits, 1)
     # Normalise, measure and return results
     register.normalise()
 
     
-    
-    measurement = register.measure()
 
-    result = (register, measurement)
+    measurement = input.measure()
+
+    result = (input, measurement)
 
     return result
 
@@ -87,7 +88,7 @@ if __name__=='__main__':
     #print(reg[0].measure())
     #measurement=grover(oracle1, k=2)
     #print(measurement[1])
-    
+
 
     n_runs = 1
     results = np.zeros(n_runs, dtype=int)
@@ -99,6 +100,6 @@ if __name__=='__main__':
     num_of_occurences = np.bincount(results)
     target_state = np.argmax((num_of_occurences) )
     accuracy = num_of_occurences[target_state]/n_runs * 100
-    
+
     print('Grover search ran {} times.'.format(n_runs))
     print('Most likely state being tagged is {} with {}/100 confidence.'.format(target_state, accuracy))

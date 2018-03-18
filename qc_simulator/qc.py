@@ -122,6 +122,47 @@ class QuantumRegister(AbstractQuantumRegister):
         self.n_qubits = int( self.n_qubits - 1)
         self.n_states = int( self.n_states / 2)
 
+    def split(self, n_a, n_b):
+        """
+        Assuming the quantum register is not an entagled state, splits into two
+        subregisters given the length of each
+        :param n: <int> Number of qubits of first subregister
+        :param k: <int> Number of qubits of second subregister
+        :return sub_registers: <tuple> Tuple containing the two sub_registers
+        """
+        # Extract base states
+        base_states = self.base_states
+
+        # Calculate number of base states for each subregister
+        n = int(2 ** (n_a))
+        k = int(2 ** (n_b))
+
+        # Create array containing multiples of subregister b
+        multiples_of_b = np.zeros((n,k), dtype=complex)
+        multiples_of_b = np.reshape(base_states, (n,k))
+
+        # Calculate the square root of the sum of the squares
+        sum_of_bs = np.sum( abs(multiples_of_b), 1)
+
+        # Calculate the square root of the sum squared
+        c = np.sqrt(np.sum( np.square( norm(sum_of_bs) ) ) )
+
+        # Divide norm_of_bs by c
+        a_states = sum_of_bs/c
+
+        #  Extract sub register b
+        b_states = multiples_of_b[0,:]/a_states[0]
+
+        # Create two new quantum registers and put them in a tuple
+        a = QuantumRegister(n_a)
+        a.base_states = a_states
+
+        b = QuantumRegister(n_b)
+        b.base_states = b_states
+
+        return (a, b)
+
+
     def normalise(self):
         """
         Normalise coefficients of qubits array
