@@ -1,6 +1,6 @@
 import numpy as np
 from qc_simulator.qc import *
-from fractions import gcd
+from math import gcd
 
 class shors:
     """
@@ -9,8 +9,7 @@ class shors:
     """
     def __init__(self, N):
         print("shor")
-        out = self.classical
-        return out
+        self.out = self.classical(N)
 
     def classical(self, N):
         m = np.random.randint(N-1)
@@ -135,5 +134,7 @@ class shors:
         print(result)
         return result
 
-a = shors(2)
+a=shors(2)
+a=a.out
+print(a)
 
