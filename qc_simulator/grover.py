@@ -44,24 +44,28 @@ def grover(oracle, k=1):
 
     n_runs = round( ((math.pi/4)/math.sqrt(k))*2**(n_qubits/2)) 
     print(n_runs)
+    
+    #register.plot_register()
+    register = register * aux
 
     for i in range(n_runs):
         # Add auxilary qubit to register
-        #register.plot_register()
-        register = register * aux
+        
 
         # Apply grover iteration
         register=oracle * register
         register = W * register
 
-        # Extract input register and reset auxillary qubit (hacky way)
-        register.remove_aux(1/np.sqrt(2))
+        
 
         
 
     # Normalise, measure and return results
-    #register.plot_register()
     register.normalise()
+    
+    # Extract input register and reset auxillary qubit (hacky way)
+    register.remove_aux(1/np.sqrt(2))
+    
     measurement = register.measure()
 
     result = (register, measurement)
