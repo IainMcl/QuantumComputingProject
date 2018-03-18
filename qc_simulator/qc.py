@@ -20,7 +20,7 @@ from copy import deepcopy
 #from qutip import *
 
 #import abstract classes
-from qc_abstract import *
+from qc_simulator.qc_abstract import *
 #from qc import
 
 class QuantumRegister(AbstractQuantumRegister):
@@ -321,13 +321,20 @@ class CUGate(Operator):
     def __init__(self, base, n_control=1, num_of_i=0):
         """
         Class constructor.
-        :param base: base Operator U
-        :param n_control: number of control qubits
-        :param num_of_i: number of empty lines between control qubits and target qubits
-        if there are no empty lines, leave equal to 0. If there are, num_of_i must be a list with
-        n_control-1 indices, each indicating the number of empty lines between control-control and finally
-        control-target eg [1,0,1]
+        :param base: <Operator> base Operator U
+        :param n_control: <int> number of control qubits
+        :param num_of_i: <int>, <list> number of empty lines between control
+        qubits and target qubits.
+        If there are no empty lines, leave equal to 0. If there are, num_of_i
+        must be a list with n_control-1 elements, each indicating the number of
+        empty lines between control-control and finally control-target eg [1,0,1]
         """
+        if not isinstance(num_of_i, int):
+            if len(num_of_i) != n_control-1:
+                raise ValueError('Number of empty lines must correctly specified!')
+        elif     n_control !=1 and num_of_i!=0:
+                raise ValueError('Number of empty lines must be correctly specified!')
+
         self.n_control = n_control
         self.n_qubits = 1 + self.n_control + np.sum(num_of_i)
         self.size = 2 ** (self.n_qubits)
@@ -340,7 +347,7 @@ class CUGate(Operator):
         Matrix is constructed using the 'lil' format, which is better for
         incremental construction of sparse matrices and is then converted
         to 'csc' format, which is better for operations between matrices
-        :param base: base operator U
+        :param base: <Operator> base operator U
         :return: sparse matrix
         """
 
