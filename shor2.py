@@ -24,25 +24,44 @@ class shors:
             print("easy: ")
             return m
         else:
+            print("though",m," :")
             p = self.find_period(N,m)
             if p%2 != 0:
                 return self.classical(N)
             elif (m**p)%N ==0:
                 return self.classical(N)
             else:
-                print("though: ")
-                return gcd(m**(p/2)-1, N)
+                return gcd(int(m**(p/2)-1), N)
 
+    def flip_not_gate(self, gate):
+        """
+        Function that flips a control not gate. It is up to the user to provide
+        the correct gates. This function does not work for multiple controlled
+        not and or other controlled-U gates.
+        :param gate: CUgate control-not gate.
+        :return flipped_gate: the flipped gate
+        """
+        n = gate.n_qubits
+        if n == 2:
+            h_gate = Hadamard(2)
+            flipped_gate = (h_gate ) * gate * (h_gate)
+            return flipped_gate
+        elif n > 2:
+            h_gate = Hadamard()
+            I = IdentityGate(n-2)
+            flipped_gate = (h_gate % I % h_gate) * gate * (h_gate % I % h_gate)
+            return flipped_gate
+    
     def find_period(self, N, m):
         n_qubits = len(format((N+1),'b'))
-        n_qubits = n_qubits*2
+        n_qubits = n_qubits
         print("find period with ", n_qubits, " qubits")
         QR1 = QuantumRegister(n_qubits)
         QR1 = Hadamard(n_qubits)*QR1
         QR2 = QuantumRegister()
-        QR = self.fmapping_lazy(QR1, QR2, N, m)
+        QR = self.fmapping_lazy(QR1, QR2, N, m, n_qubits)
         QFT = self.QFT(n_qubits)
-        QR = QFT*QR
+        QR = (QFT%IdentityGate(n_qubits))*QR
         #c = np.array([QR.measure() for x in range(100)])
         print("place")
         p = 0
@@ -59,14 +78,14 @@ class shors:
         for j in range(n-2):
             M = (IdentityGate(j+1)%H%IdentityGate(n-j-2))*M
             for i in range(n-3-j):
-                print(i)
+                #print(i)
                 phi = 2*np.pi/np.power(2,i+2)
-                print(M.matrix.shape)
+                #print(M.matrix.shape)
                 M1 = (IdentityGate(j+1)%(CUGate(PhaseShift(phi),1,i))%IdentityGate(n-j-i-3))
-                print(j+1,i,n-j-i-3)
-                print(M1.matrix.shape)
+                #print(j+1,i,n-j-i-3)
+                #print(M1.matrix.shape)
                 M = M1*M
-            print("pass")
+            #print("pass")
             phi = 2*np.pi/np.power(2,n-j)
             M1 = (IdentityGate(j+1)%CUGate(PhaseShift(phi),1,n-3-j))
             M = M1*M
@@ -75,12 +94,12 @@ class shors:
         return M
 
 
-    def fmapping_lazy(self, QR1, QR2, N, m):
+    def fmapping_lazy(self, QR1, QR2, N, m, n_qubits):
         """
         x mod N
         """
         print("lazy mapping")
-        n_qubits = QR1.n_qubits
+        #n_qubits = QR1.n_qubits
         n_states = 2**n_qubits
         QR2 = QuantumRegister(n_qubits)
         states = np.zeros(n_states)
@@ -88,6 +107,7 @@ class shors:
             x = int(np.mod(m**i, N))
             states[x] = states[x] +1
         QR2.base_states = states
+        print(states)
         QR = QR1*QR2
         return QR
 
@@ -97,7 +117,7 @@ class shors:
             return IdentityGate(n)
         else:
             M1 = CUGate(Not())
-            M1 = flip_not_gate(M1)*M1
+            M1 = self.flip_not_gate(M1)*M1
             M1 = CUGate(Not())*M1
             M = M1
             for i in range(int(n/2)-1):
@@ -189,7 +209,7 @@ class shors:
         M = M2*M1*M
         return M
 
-a=shors(15)
+a=shors(21)
 a=a.out
-print(a)
+print("we get: ",a)
 
