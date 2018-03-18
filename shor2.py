@@ -9,7 +9,11 @@ class shors:
     """
     def __init__(self, N):
         print("shor")
-        self.out = self.classical(N)
+        if N%2 == 0:
+            print("odd number please")
+            self.out = N/2
+        else:
+            self.out = self.classical(N)
 
     def classical(self, N):
         m = np.random.randint(N-1)
