@@ -19,9 +19,9 @@ class shors:
         else:
             p = self.find_period(N,m)
             if p%2 != 0:
-                self.classical(N)
+                return self.classical(N)
             elif (m**p)%N ==0:
-                self.classical(N)
+                return self.classical(N)
             else:
                 return gcd(m**(p/2)-1, N)
 
