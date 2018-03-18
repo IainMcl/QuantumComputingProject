@@ -7,5 +7,5 @@ setup(name='qc_simulator',
     author='Andreas Malekos',
     autor_email='andymalekos@gmail.com',
     packages=['qc_simulator'],
-    install_requires=['matplotlib', 'numpy', 'scipy', 'qutip', 'abc'],
+    install_requires=['matplotlib', 'numpy==1.14', 'scipy', 'qutip', 'abc'],
     zip_false=False)

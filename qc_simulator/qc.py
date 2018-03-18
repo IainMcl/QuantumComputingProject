@@ -20,7 +20,7 @@ from copy import deepcopy
 #from qutip import *
 
 #import abstract classes
-from qc_simulator.qc_abstract import *
+from qc_abstract import *
 #from qc import
 
 class QuantumRegister(AbstractQuantumRegister):
@@ -50,7 +50,7 @@ class QuantumRegister(AbstractQuantumRegister):
         """
         Make a measurement. Square all the amplitudes and choose a random state.
         Outputs an integer representing the state measured (decimal system).
-        :return: state, integer that corresponds to the number of the state measured, in decimal format.
+        :return state: <int> integer that corresponds to the number of the state measured, in decimal format.
         """
         # Calculate probabilities
         probabilities = np.zeros(self.n_states)
@@ -269,7 +269,7 @@ class Operator(AbstractOperator):
     def __str__(self):
         """
         Provides method to pring out operator.
-        :return: rep: String that corresponds the __str__() method of the
+        :return: rep: <String> String that corresponds the __str__() method of the
         numpy array.
         """
         return self.matrix.toarray().__str__()
@@ -330,7 +330,7 @@ class CUGate(Operator):
         empty lines between control-control and finally control-target eg [1,0,1]
         """
         if not isinstance(num_of_i, int):
-            if len(num_of_i) != n_control-1:
+            if len(num_of_i) != n_control:
                 raise ValueError('Number of empty lines must correctly specified!')
         elif     n_control !=1 and num_of_i!=0:
                 raise ValueError('Number of empty lines must be correctly specified!')
@@ -406,8 +406,6 @@ class CUGate(Operator):
             return control_qubit_indices
 
 
-
-
 class IdentityGate(Operator):
     """
     Class that implements identity operator.
@@ -417,14 +415,14 @@ class IdentityGate(Operator):
 
 class fGate(Operator):
     """
-    Class that implements an f-Gate, Uf. The action of Uf is defined as follows
+    Class that implements an f-Gate, Uf. The action of Uf is defined as follows:
     Uf*|x>*|y> = |x>*|(y+f(x))%2>
     """
     def __init__(self, f, n):
         """
         Class constructor:
         :param f: callable function f defined from {0,1}^n -> {0,1}
-        :param n: number of states n acts on
+        :param n: <int> number of states n acts on
         """
         self.f = f
         self.n_qubits = n + 1
@@ -444,7 +442,6 @@ class fGate(Operator):
             # Loop over the rows 2 at a time and exchange only if f(x)
             # returns 1.
             if f(i) == 1:
-                print('Switching rows {} and {}.'.format(2*i, 2*i+1))
                 temp = deepcopy(matrix_full[2*i,:])
                 temp2 = deepcopy(matrix_full[2*i + 1,:])
                 matrix_full[2*i,:] = temp2

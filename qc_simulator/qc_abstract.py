@@ -52,3 +52,10 @@ class AbstractOperator(ABC):
         Define tensor product between operators
         """
         pass
+
+    @abstractclassmethod
+    def __str__(self):
+        """
+        Define print method for operator objectself.
+        """
+        pass 
