@@ -23,15 +23,13 @@ def grover(oracle, k=1):
     # Define basis gates
     not_gate = Not()
     h_gate = Hadamard()
-    z = PhaseShift(np.pi)
-    control_z = CUGate(z, n_qubits-1)
-    # control_z = build_nc_z(n_qubits-1)
-    h_n_gate = Hadamard(n_qubits+1)
-    not_n_gate = Not(n_qubits+1)
+    control_n=CUGate(not_gate, n_qubits)
+    h_n_gate = Hadamard(n_qubits)
+    not_n_gate = Not(n_qubits)
     I=IdentityGate()
 
     # Create the reflection round average gate
-    W = h_n_gate * not_n_gate * (control_z % I) * not_n_gate * h_n_gate
+    W = (h_n_gate % I) * (not_n_gate % I) * (control_n) * (not_n_gate % I) * (h_n_gate % I)
 
     # Define the input and ancillary quantum registers
     input_register = Hadamard(n_qubits) * QuantumRegister(n_qubits)
@@ -45,12 +43,12 @@ def grover(oracle, k=1):
     n_runs = round( ((math.pi/4)/math.sqrt(k))*2**(n_qubits/2)) 
     print(n_runs)
     
-    #register.plot_register()
+    # Add auxilary qubit to register
     register = register * aux
 
     for i in range(n_runs):
-        # Add auxilary qubit to register
         
+        #register.plot_register()
 
         # Apply grover iteration
         register=oracle * register
@@ -58,13 +56,13 @@ def grover(oracle, k=1):
 
         
 
-        
-
-    # Normalise, measure and return results
-    register.normalise()
-    
+    #register.plot_register() 
     # Extract input register and reset auxillary qubit (hacky way)
     register.remove_aux(1/np.sqrt(2))
+    # Normalise, measure and return results
+    register.normalise()
+
+    
     
     measurement = register.measure()
 
@@ -79,11 +77,11 @@ if __name__=='__main__':
 
     n=7
     oracle1=oracle_single_tag(n,4)
-    oracle2=oracle_single_tag(n,5)
+    #oracle2=oracle_single_tag(n,5)
     #oracle3=oracle_single_tag(n,10)
     #oracle4=oracle_single_tag(n,15)
     #oracle=oracle1*oracle2*oracle3*oracle4
-    oracle1=oracle1*oracle2
+    #oracle1=oracle1*oracle2
 
     #reg = grover(oracle1)
     #print(reg[0].measure())
@@ -91,10 +89,10 @@ if __name__=='__main__':
     #print(measurement[1])
     
 
-    n_runs = 50
+    n_runs = 1
     results = np.zeros(n_runs, dtype=int)
     for i in range(n_runs):
-        measurement=grover(oracle1,k=2)
+        measurement=grover(oracle1,k=1)
         results[i] = measurement[1]
 
     # Return number measured most often together with the accuracy
