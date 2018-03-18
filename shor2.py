@@ -1,5 +1,6 @@
 import numpy as np
-from qc_simulator.qc import *
+from qc_simulator import *
+#from qc_simulator.functions import *
 from math import gcd
 
 class shors:
@@ -8,16 +9,19 @@ class shors:
     all based on thing on git
     """
     def __init__(self, N):
-        print("shor")
+        print("shor's algorithum")
         if N%2 == 0:
             print("odd number please")
             self.out = N/2
         else:
+            print("input: ",N)
             self.out = self.classical(N)
 
     def classical(self, N):
-        m = np.random.randint(N-1)
+        print("classical")
+        m = np.random.randint(1,N-1)
         if gcd(m,N)!=1:
+            print("easy: ")
             return m
         else:
             p = self.find_period(N,m)
@@ -26,56 +30,81 @@ class shors:
             elif (m**p)%N ==0:
                 return self.classical(N)
             else:
+                print("though: ")
                 return gcd(m**(p/2)-1, N)
 
     def find_period(self, N, m):
-        n_qubits = len(format(N+1),'b')
+        n_qubits = len(format((N+1),'b'))
+        n_qubits = n_qubits*2
+        print("find period with ", n_qubits, " qubits")
         QR1 = QuantumRegister(n_qubits)
         QR1 = Hadamard(n_qubits)*QR1
         QR2 = QuantumRegister()
-        QR = fmapping_lazy(QR1,N, m)
-        QFT = self.QFT(2**n_qubits)
+        QR = self.fmapping_lazy(QR1, QR2, N, m)
+        QFT = self.QFT(n_qubits)
         QR = QFT*QR
-        c = np.array([QR.measure() for x in range(100)])
+        #c = np.array([QR.measure() for x in range(100)])
+        print("place")
+        p = 0
         return p
 
-    def QFT_cuircuts(self, N_states=1, inverse=False):
-        """
-        maybe to be edited, if statment changed maybe
-        """
-        H = Hardamard()
-        I = IdentityGate()
-        P = PhaseShift()
-        M = I
-        for j in range(N_states):
-            if j == 0:
-                M1 = IdentityGate(N_states-1)%H
-            elif j == n-1:
-                M1 = H%IdentityGate(N_states-1)
-            else:
-                M1 = IdentityGate(j)%H%IdentityGate(N_states-1-j)
-            M2 = H
-            for i in range(j):
-                M2 = M2%I
-            for i in range(N_states-j-1):
-                M2 = P%M2
-            M = M2*M1*M
+    def QFT(self, n):
+        print("QFT")
+        H = Hadamard()
+        M = H%IdentityGate(n-1)
+        for i in range(n-2):
+            phi = 2*np.pi/np.power(2,i+2)
+            M = (CUGate(PhaseShift(phi),1,i)%IdentityGate(n-2-i))*M
+        M = (CUGate(PhaseShift(phi),1,n-2))*M
+        for j in range(n-2):
+            M = (IdentityGate(j+1)%H%IdentityGate(n-j-2))*M
+            for i in range(n-3-j):
+                print(i)
+                phi = 2*np.pi/np.power(2,i+2)
+                print(M.matrix.shape)
+                M1 = (IdentityGate(j+1)%(CUGate(PhaseShift(phi),1,i))%IdentityGate(n-j-i-3))
+                print(j+1,i,n-j-i-3)
+                print(M1.matrix.shape)
+                M = M1*M
+            print("pass")
+            phi = 2*np.pi/np.power(2,n-j)
+            M1 = (IdentityGate(j+1)%CUGate(PhaseShift(phi),1,n-3-j))
+            M = M1*M
+        M = (IdentityGate(n-1)%H)*M
+        M = self.swap_gate(n)*M
         return M
 
-    def fmapping_lazy(self, QR1, N, m, QR2=QuantumRegister()):
+
+    def fmapping_lazy(self, QR1, QR2, N, m):
         """
         x mod N
         """
+        print("lazy mapping")
         n_qubits = QR1.n_qubits
         n_states = 2**n_qubits
         QR2 = QuantumRegister(n_qubits)
         states = np.zeros(n_states)
-        for i in range(N_states):
-            x = np.mod(m**i, N)
+        for i in range(n_states):
+            x = int(np.mod(m**i, N))
             states[x] = states[x] +1
         QR2.base_states = states
         QR = QR1*QR2
         return QR
+
+    def swap_gate(self, n=2):
+        print("swap")
+        if n < 2:
+            return IdentityGate(n)
+        else:
+            M1 = CUGate(Not())
+            M1 = flip_not_gate(M1)*M1
+            M1 = CUGate(Not())*M1
+            M = M1
+            for i in range(int(n/2)-1):
+                M = M1%M
+            print(M.n_qubits)
+            return M
+
 # not being used from here downwards
 
     def SumGate(self, n=3):
@@ -138,7 +167,29 @@ class shors:
         print(result)
         return result
 
-a=shors(2)
+    def QFT_circuts(self, n_states=1, inverse=False):
+        """
+        maybe to be edited, if statment changed maybe
+        """
+        H = Hadamard()
+        I = IdentityGate()
+        for j in range(n_states-1):
+            if j == 0:
+                M = H%IdentityGate(N_states-1)
+                for i in range(N_states-1):
+                    phi = 2*np.pi/np.power(2,i)
+                    M1 = CUGate(PhaseShift(phi),1, i)%IdentityGate()
+            elif j == n_states:
+                M = (IdentityGate(N_states-1)%H)*M
+            else:
+                M = H%IdentityGate(N_states-1-j)*M
+                for i in range(N_states-j-1):
+                    phi = 2*np.pi/np.power(2,i)
+                    M = (IdentityGate(j)%CUGate(PhaseShift(phi),1, i)%IdentityGate())
+        M = M2*M1*M
+        return M
+
+a=shors(15)
 a=a.out
 print(a)
 
