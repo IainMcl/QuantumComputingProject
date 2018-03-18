@@ -94,7 +94,7 @@ def build_3qubit_ancilla_gate():
 
 def build_3qubit_correction_gate():
     """
-    Corrects a single qubit |0> to |1> or reverse error in 3qubit quantum error correction
+    Corrects a single qubit bit error in 3qubit quantum error correction
     using information from ancilla qubits.
     returns <operator> object
     """
