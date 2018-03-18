@@ -17,11 +17,9 @@ from scipy.sparse import coo_matrix, csc_matrix, lil_matrix, kron
 from math import pi
 import matplotlib.pyplot as plt
 from copy import deepcopy
-#from qutip import *
 
 #import abstract classes
-from qc_abstract import *
-#from qc import
+from qc_simulator.qc_abstract import *
 
 class QuantumRegister(AbstractQuantumRegister):
     """
@@ -35,9 +33,9 @@ class QuantumRegister(AbstractQuantumRegister):
     def __init__(self, n_qubits=1, isempty=False):
         """
         Class constructor
-        :param n_qubits: number of qubits in quantum register
-        :param isempty: parameter that tells whether the quantum register should be empty.
-        set to False by default.
+        :param n_qubits: <int> number of qubits in quantum register
+        :param isempty: <bool> parameter that tells whether the quantum register should be empty.
+        Set to False by default.
         """
         self.n_states = int(2 ** n_qubits)
         self.n_qubits = n_qubits
@@ -66,8 +64,8 @@ class QuantumRegister(AbstractQuantumRegister):
     def __mul__(self, other):
         """
         Overrides multiplication operator to define tensor product between two quantum registers.
-        :param other: right hand side quantum register
-        :return: qmr_result, resulting quantum register.
+        :param other: <QuantumRegister> right hand side quantum register
+        :return qmr_result: <QuantumRegister> resulting quantum register.
         """
 
         # Check if other is of the right tyoe
@@ -89,7 +87,7 @@ class QuantumRegister(AbstractQuantumRegister):
     def __str__(self):
         """
         Overrides str method to print out quantum register in braket notation
-        :return: rep : string reply
+        :return rep : <str> reply
         """
         base_states = self.base_states
         l = len(base_states)
@@ -125,11 +123,17 @@ class QuantumRegister(AbstractQuantumRegister):
     def split(self, n_a, n_b):
         """
         Assuming the quantum register is not an entagled state, splits into two
-        subregisters given the length of each
+        subregisters given the length of each.
         :param n: <int> Number of qubits of first subregister
         :param k: <int> Number of qubits of second subregister
-        :return sub_registers: <tuple> Tuple containing the two sub_registers
+        :return a, b: (<QuantumRegister>, <QuantumRegister>) Tuple containing the two sub_registers
         """
+        # Check if n_a + n_b = total number of qubits in register
+        if n_a + n_b != self.n_qubits:
+            raise ValueError(
+            'Number of qubits of subregisters must be '
+            'equal to total number of qubits of current register!')
+
         # Extract base states
         base_states = self.base_states
 
@@ -150,6 +154,13 @@ class QuantumRegister(AbstractQuantumRegister):
         # Divide norm_of_bs by c
         a_states = sum_of_bs/c
 
+        # If the square root of the sum of the norms squared isn't 1, then
+        # the quantum register is entangled, raise error and stop operation
+        test_norm = np.sqrt( np.sum( np.square(norm(a_states) ) ) )
+        print(test_norm)
+        if test_norm != 1:
+            raise ValueError('The quantum register is entangled!')
+
         #  Extract sub register b
         b_states = multiples_of_b[0,:]/a_states[0]
 
@@ -160,12 +171,15 @@ class QuantumRegister(AbstractQuantumRegister):
         b = QuantumRegister(n_b)
         b.base_states = b_states
 
+        # Before returning check if both states sum to 1, if not then it means
+        # the quantum register is entangled and the operation cannot proceed.
+
         return (a, b)
 
 
     def normalise(self):
         """
-        Normalise coefficients of qubits array
+        Normalise coefficients of qubits array.
         """
         # Add tolerance to remove extremely small floating point calculation errors
         tol = 10 ** (-8)
@@ -179,7 +193,7 @@ class QuantumRegister(AbstractQuantumRegister):
     def plot_register(self, show=True):
         """
         Produce bar graph of quantum register.
-        :param show: Boolean flag that if set to true, shows the bar graph.
+        :param show: <bool> Flag that if set to true, shows the bar graph.
         :return: ax, axis handle object.
         """
         ax = plt.bar(np.arange(2**self.n_qubits),np.absolute(self.base_states))
@@ -213,8 +227,8 @@ class Operator(AbstractOperator):
     def __init__(self, n_qubits=1, base=np.zeros((2, 2))):
         """
          Class constructor
-         :param n_qubits: number of qubits operator operates on
-         :param base: base matrix
+         :param n_qubits: <int> Number of qubits operator operates on
+         :param base: <np.array> Base matrix
         """
         self.n_qubits = n_qubits
         self.size = 2 ** n_qubits
@@ -224,9 +238,9 @@ class Operator(AbstractOperator):
         """
         Create matrix by taking successive tensor producs between for the total
         number of qubits.
-        :param n_qubits: number of qubits operator operates on
-        :param base: base matrix
-        :return: sparse matrix (csc format)
+        :param n_qubits: <int> Number of qubits operator operates on
+        :param base: <np.array> Base matrix
+        :return: <csc_matrix> Sparse matrix (csc format)
         """
         base_complex = np.array(base, dtype=complex)
         result = lil_matrix(base_complex)
@@ -246,9 +260,11 @@ class Operator(AbstractOperator):
         """
         Overrides multiplication operator and defined the multiplication between
         two operators and an operator and a quantum register.
-        :param rhs: right hand side, can be either operator or quantum register
-        :return: Operator if rhs is of type Operator then return Operator. If it's of
-        type QuantumRegister, then return a quantum register object.
+        :param rhs: <QuantumRegister> / <Operator> Right hand side, can be either
+        operator or quantum register
+        :return: <QuantumRegister> / <Operator> if rhs is of type Operator then
+        return Operator. If it's of type QuantumRegister, then return a quantum
+        register object.
         """
         if isinstance(rhs, QuantumRegister):
             # Apply operator to quantum register
