@@ -157,23 +157,6 @@ def build_9qubit_ancilla_gate():
     return gate
 
 
-'''
-def build_9qubit_correction_gate():
-    I = IdentityGate()
-    z = PhaseShift(np.pi)
-    c_c_z_8i = build_c_c_z(num_control_i=8)
-    c_c_z_4i = build_c_c_z(num_control_i=4)
-    c_c_z_1i = build_c_c_z(num_control_i=1)
-    c_z_8i = CUGate(z, n_control=1, num_of_i=8)
-    c_z_2i = CUGate(z, n_control=1, num_of_i=2)
-    
-    gate = (c_z_8i % I) * (c_c_z_8i) * (IdentityGate(4) % c_c_z_4i)\
-    * (IdentityGate(7) % c_z_2i) * (IdentityGate(7) % c_c_z_1i)
-    
-    return gate
-'''
-
-
 
 def build_9qubit_correction_gate():
     I = IdentityGate()
@@ -192,11 +175,13 @@ def build_9qubit_correction_gate():
 
 I=IdentityGate()
 n=Not()
-reg=(n%n%I%n)* QuantumRegister(4)
+reg=(n%I%n%n)* QuantumRegister(4)
 print(reg)
-z = PhaseShift(np.pi)
-c_c_z = CUGate(z, n_control=2, num_of_i=1)
+#z = PhaseShift(np.pi)
+z=Not()
+c_c_z = CUGate(z, n_control=2, num_of_i=[1,0])
 reg=c_c_z*reg
+
 
 
 print(reg)

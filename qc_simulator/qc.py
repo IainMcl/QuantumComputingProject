@@ -20,7 +20,7 @@ from copy import deepcopy
 #from qutip import *
 
 #import abstract classes
-from qc_simulator.qc_abstract import *
+from qc_abstract import *
 #from qc import
 
 class QuantumRegister(AbstractQuantumRegister):
@@ -323,7 +323,10 @@ class CUGate(Operator):
         Class constructor.
         :param base: base Operator U
         :param n_control: number of control qubits
-        :param num_of_i: number of empty lines between control and target qubit.
+        :param num_of_i: number of empty lines between control qubits and target qubits
+        if there are no empty lines, leave equal to 0. If there are, num_of_i must be a list with
+        n_control-1 indices, each indicating the number of empty lines between control-control and finally
+        control-target eg [1,0,1]
         """
         self.n_control = n_control
         self.n_qubits = 1 + self.n_control + np.sum(num_of_i)
