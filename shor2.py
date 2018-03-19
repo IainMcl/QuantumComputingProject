@@ -1,9 +1,9 @@
 import numpy as np
-from qc_simulator.qc import *
+from qc_simulator import *
 #from qc_simulator.functions import *
 from math import gcd
 
-class Shors(Object):
+class Shors():
     """
     only 1 regester 1 qbit number as
     all based on thing on git
@@ -27,33 +27,16 @@ class Shors(Object):
             print("though",m," :")
             p = self.find_period(N,m)
             if p%2 != 0:
+                print("oops1")
                 return self.classical(N)
-            elif (m**p)%N ==0:
+            elif (m**p)%N == 0:
+                print("oops2")
                 return self.classical(N)
             else:
-                return gcd(int(m**(p/2)-1), N)
-
-    def flip_not_gate(self, gate):
-        """
-        Function that flips a control not gate. It is up to the user to provide
-        the correct gates. This function does not work for multiple controlled
-        not and or other controlled-U gates.
-        :param gate: CUgate control-not gate.
-        :return flipped_gate: the flipped gate
-        """
-        n = gate.n_qubits
-        if n == 2:
-            h_gate = Hadamard(2)
-            flipped_gate = (h_gate ) * gate * (h_gate)
-            return flipped_gate
-        elif n > 2:
-            h_gate = Hadamard()
-            I = IdentityGate(n-2)
-            flipped_gate = (h_gate % I % h_gate) * gate * (h_gate % I % h_gate)
-            return flipped_gate
+                return gcd(int(m**(p/2)-1), N), gcd(int(m**(p/2)+1), N)
 
     def find_period(self, N, m):
-        n_qubits = len(format((N+1),'b'))
+        n_qubits = len(format((N*2+1),'b'))
         if n_qubits%2!=0:
             n_qubits = n_qubits+1
         print("find period with ", n_qubits, " qubits")
@@ -63,10 +46,21 @@ class Shors(Object):
         QR = self.fmapping_lazy(QR1, QR2, N, m, n_qubits)
         QFT = self.QFT(n_qubits)
         QR = (QFT%IdentityGate(n_qubits))*QR
-        #c = np.array([QR.measure() for x in range(100)])
-        print("place")
-        p = 0
-        return p
+        c = self.get_p(QR)
+        #print(c)
+        return c
+
+    def get_p(self,QR):
+        c = 1
+        while c == 1:
+            c = QR.measure()
+        mes = 1
+        for i in range(2):
+            while mes == 1:
+                mes = QR.measure()
+            c = gcd(c, mes)
+        return c
+
 
     def QFT(self, n):
         print("QFT")
@@ -91,7 +85,7 @@ class Shors(Object):
             M1 = (IdentityGate(j+1)%CUGate(PhaseShift(phi),1,n-3-j))
             M = M1*M
         M = (IdentityGate(n-1)%H)*M
-        M = SWAPGate(n_qubits)(n)*M
+        M = SWAPGate(n)*M
         return M
 
 
@@ -108,11 +102,12 @@ class Shors(Object):
             x = int(np.mod(m**i, N))
             states[x] = states[x] +1
         QR2.base_states = states
-        print(states)
+        #print(states)
         QR = QR1*QR2
         return QR
 
-    
+
+# not being used from here downwards
 
     def swap_gate(self, n=2):
         print("swap")
@@ -129,7 +124,6 @@ class Shors(Object):
             print(M.n_qubits)
             return M
 
-# not being used from here downwards
 
     def SumGate(self, n=3):
         """
@@ -213,6 +207,6 @@ class Shors(Object):
         M = M2*M1*M
         return M
 
-a=shors(21)
+a=Shors(15)
 a=a.out
 print("we get: ",a)
