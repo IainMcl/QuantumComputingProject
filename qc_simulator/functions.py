@@ -13,7 +13,7 @@ import math
 
 def quantumAdder(a,b):
     """
-    Implements a quantum addition circuit using a C-Not and Toffili Gates
+    Implements a quantum addition circuit using a C-Not and Toffoli Gates
     Takes in 2 single qubit quantum registers as input
     returns a quantum register containing the sum of the values of the 2 input registers
 
@@ -128,25 +128,66 @@ def build_c_c_not(num_control_i=0, num_target_i=0):
 
     return toffoli
 
+def build_rev_c_c_not(num_control_i=0, num_target_i=0):
+    """
+    Builds a reverse toffoli gate, given the number of I operators between the second control and the target qubit from the
+    first control. By default these distances are set to 0 and 0 respectively.
+    :param num_control_i:
+    :param num_target_i:
+    :return: toffoli, toffoli gate (Operator Object)
+    """
 
-def flip_not_gate(gate):
-    """
-    Function that flips a control not gate. It is up to the user to provide
-    the correct gates. This function does not work for multiple controlled
-    not and or other controlled-U gates.
-    :param gate: CUgate control-not gate.
-    :return flipped_gate: the flipped gate
-    """
-    n = gate.n_qubits
-    if n == 2:
-        h_gate = Hadamard(2)
-        flipped_gate = (h_gate ) * gate * (h_gate)
-        return flipped_gate
-    elif n > 2:
-        h_gate = Hadamard()
-        I = IdentityGate(n-2)
-        flipped_gate = (h_gate % I % h_gate) * gate * (h_gate % I % h_gate)
-        return flipped_gate
+    # Initialise basis gates
+    h_gate = Hadamard()
+    I = IdentityGate()
+    I_target = IdentityGate(num_target_i + 1)
+    I_control = IdentityGate(num_control_i + 1)
+    I_total = IdentityGate(num_target_i + num_control_i + 2)
+
+    v_gate = PhaseShift(np.pi / 2)
+    c_v_short = CUGate(v_gate, num_of_i=num_target_i)
+    c_v_long = CUGate(v_gate, num_of_i=num_target_i+num_control_i + 1)
+
+    c_not = CUGate(Not(), num_of_i=num_control_i)
+    v3 = v_gate * v_gate * v_gate
+    c_v3 = CUGate(v3, num_of_i=num_target_i)
+
+    # Build circuit
+
+    if num_control_i == 0:
+        gate = (h_gate % I_total) * c_v_long  * (I_target % h_gate % h_gate)\
+        * (I_target % c_not) * (I_target % h_gate % h_gate) * (c_v3 % I_control)\
+        * (I_target % h_gate %  h_gate) * (I_target % c_not)\
+        * (I_target % h_gate %  h_gate) * (c_v_short % I_control) * (h_gate % I_total)
+    else:
+
+        gate = (h_gate % I_total) * c_v_long  * (I_target % h_gate % IdentityGate(num_control_i) % h_gate)\
+        * (I_target % c_not) * (I_target % h_gate % IdentityGate(num_control_i) % h_gate) * (c_v3 % I_control)\
+        * (I_target % h_gate % IdentityGate(num_control_i) % h_gate) * (I_target % c_not)\
+        * (I_target % h_gate % IdentityGate(num_control_i) % h_gate) * (c_v_short % I_control) * (h_gate % I_total)
+
+
+
+    return gate
+
+def build_rev_c_not(num_of_i=0):
+    '''
+    Builds a reverse c not gate
+    num_of_i is the number of qubits between the control and target
+    '''
+
+
+    h_gate = Hadamard()
+    c_not = CUGate(Not(), num_of_i=num_of_i)
+
+    if num_of_i == 0:
+        gate = (h_gate % h_gate) * c_not * (h_gate % h_gate)
+
+    else:
+        I = IdentityGate(n_qubits=num_of_i)
+        gate = (h_gate % I % h_gate) * c_not * (h_gate % I % h_gate)
+
+    return gate
 
 
 

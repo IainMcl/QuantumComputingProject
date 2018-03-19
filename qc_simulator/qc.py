@@ -37,6 +37,10 @@ class QuantumRegister(AbstractQuantumRegister):
         :param isempty: <bool> parameter that tells whether the quantum register should be empty.
         Set to False by default.
         """
+        # Check that qubits is bigger than 0
+        if n_qubits <= 0 :
+            raise ValueError('Quantum register must have at least 1 qubit!')
+
         self.n_states = int(2 ** n_qubits)
         self.n_qubits = n_qubits
         self.base_states = np.zeros(self.n_states, dtype=complex)
@@ -230,6 +234,10 @@ class Operator(AbstractOperator):
          :param n_qubits: <int> Number of qubits operator operates on
          :param base: <np.array> Base matrix
         """
+        # Check if number of qubits is correct
+        if n_qubits <= 0:
+            raise ValueError('Operator must operate on at least 1 qubit!')
+
         self.n_qubits = n_qubits
         self.size = 2 ** n_qubits
         self.matrix = self.__create_sparse_matrix(self.n_qubits, base)
@@ -512,6 +520,10 @@ class SWAPGate(Operator):
     Class that implements a SWAP gate acting on an n qubit register.
     """
     def __init__(self, n_qubits):
+        # Check that correct numbr of qubits has been entered
+        if n_qubits <= 1:
+            raise ValueError('SWAP Gate must operate on at least 2 qubits!')
+
         self.n_qubits = n_qubits
         self.size = int(2**(n_qubits))
         self.matrix = self.__create_sparse_matrix()
