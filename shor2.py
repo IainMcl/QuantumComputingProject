@@ -43,10 +43,10 @@ class Shors():
         if p%2 != 0:
             print("oops-------1")
             return self.classical(N)
-        elif (m**(p/2)+1)%N == 0:
+        elif (m**(p/2))%N == 1%N:
             print("oops-------2")
             return self.classical(N)
-        elif (m**(p/2)-1)%N == 0:
+        elif (m**(p/2))%N == -1%N:
             print("oops------3")
             return self.classical(N)
         else:
