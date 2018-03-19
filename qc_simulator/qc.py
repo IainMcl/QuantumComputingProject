@@ -462,7 +462,6 @@ class CUGate(Operator):
 
             return control_qubit_indices
 
-
 class IdentityGate(Operator):
     """
     Class that implements identity operator.
@@ -490,6 +489,8 @@ class fGate(Operator):
         """
         Constructs a numpy matrix that corresponds to the function
         evaluation. The matrix is then converted to a sparse array.
+        :return : <csc_matrix> Sparse matrix containing the matrix represnetation
+        of the operator.
         """
         matrix_full = np.eye(self.size, self.size)
         n = int(self.size/2)
@@ -505,3 +506,38 @@ class fGate(Operator):
                 matrix_full[2*i + 1, : ] = temp
 
         return csc_matrix(matrix_full)
+
+class SWAPGate(Operator):
+    """
+    Class that implements a SWAP gate acting on an n qubit register.
+    """
+    def __init__(self, n_qubits):
+        self.n_qubits = n_qubits
+        self.size = int(2**(n_qubits))
+        self.matrix = self.__create_sparse_matrix()
+
+    def __create_sparse_matrix(self):
+        """
+        Creates sparse matrix for SWAP Gate
+        :param n_qubits: <int> Number of qubits matrix operates on
+        :return matrix: <csc_matri> Matrix representing SWAP gate
+        """
+        n_qubits = self.n_qubits
+        size = self.size
+
+        # Create empty numpy array
+        dense_matrix = np.zeros((size,size))
+
+        # Loop for every row
+        for i in range(size):
+            state_binary = np.binary_repr(i, n_qubits)
+
+            # Flip string and convert to integer
+            state_flipped = state_binary[::-1]
+            k = int(state_flipped, 2)
+
+            #Assign relevant matrix element to 1
+            dense_matrix[i,k] = 1
+
+        # Convert dense matrix to csc_matrix
+        return csc_matrix(dense_matrix)

@@ -1,9 +1,9 @@
 import numpy as np
-from qc_simulator import *
+from qc_simulator.qc import *
 #from qc_simulator.functions import *
 from math import gcd
 
-class shors:
+class Shors(Object):
     """
     only 1 regester 1 qbit number as
     all based on thing on git
@@ -51,7 +51,7 @@ class shors:
             I = IdentityGate(n-2)
             flipped_gate = (h_gate % I % h_gate) * gate * (h_gate % I % h_gate)
             return flipped_gate
-    
+
     def find_period(self, N, m):
         n_qubits = len(format((N+1),'b'))
         if n_qubits%2!=0:
@@ -138,7 +138,7 @@ class shors:
         M = I%CUGate(not())
         M = CUGate(Not(),1,1,1)*M
         return M
-    
+
     def CarryGate(self, n = 4):
         """
         like sum, likely only usable with 4
@@ -169,8 +169,8 @@ class shors:
                 return M
         else:
             print("quantum regesters should be equal in size")
-        
-        
+
+
 
     def AdderGate(self):
         print("addder")
@@ -214,4 +214,3 @@ class shors:
 a=shors(21)
 a=a.out
 print("we get: ",a)
-
