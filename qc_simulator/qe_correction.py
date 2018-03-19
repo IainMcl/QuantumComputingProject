@@ -196,70 +196,107 @@ if __name__ == '__main__':
 #
 # print(reg)
 
+    # Build 3 Qubit gates
+    encode_3_gate=build_3qubit_encode_gate()
+    ancilla_3_gate=build_3qubit_ancilla_gate()
+    correct_3_gate=build_3qubit_correction_gate()
+
+    # Build 9 Qubit gates
+    encode_9_gate=build_9qubit_encode_gate()
+    ancilla_9_gate=build_9qubit_ancilla_gate()
+    correct_9_gate=build_9qubit_correction_gate()
+
+    # Prepare 1 qubit register
+    reg1 = QuantumRegister(1)
+    # Prepare 8 qubit encoding register
+    reg2 = QuantumRegister(2)
+    # Prepare 2 qubit ancilla register
+    reg3=QuantumRegister(2)
+
+    print("3 Qubit code:")
+
+    # Combine register 1 with encoding register
+    reg=reg1*reg2
+
+    # Apply encoding gate
+    reg= encode_3_gate*reg
+
+    # Combine register with ancilla gates
+    reg=reg*reg3
+
+    # Print register
+    print("Encoded register:")
+    print(reg)
+    print("\n")
+
+    # Induce a qubit phase flip and print register
+    n = Not()
+    reg = (n % IdentityGate(1) % IdentityGate(1)) * reg
+
+    print("Qubit phase flip error induced")
+    print(reg)
+    print("\n")
 
 
-gate = build_9qubit_encode_gate()
-reg1 = Not()* QuantumRegister(1)
-reg2 = QuantumRegister(8)
-reg=reg1*reg2
-reg= gate*reg
-reg3=QuantumRegister(2)
-reg=reg*reg3
-gate2=build_9qubit_ancilla_gate()
-z_gate = PhaseShift(np.pi)
+    # Apply ancilla gate
+    reg=ancilla_3_gate*reg
 
-print(reg)
-print("\n")
-reg = (IdentityGate(3) % z_gate % IdentityGate(7)) * reg
-print(reg)
-print("\n")
+    # Print register
+    print("Ancilla gates encoded")
+    print(reg)
+    print("\n")
 
+    # Apply correction gate
+    reg = correct_3_gate * reg
 
+    print("Corrected gate")
+    print(reg)
 
-reg=gate2*reg
+    print("9 Qubit code:")
 
-print(reg)
-print("\n")
-
-gate3= build_9qubit_correction_gate()
-
-reg = gate3 * reg
-
-print(reg)
+    # Prepare 1 qubit register
+    reg1 = QuantumRegister(1)
+    # Prepare 8 qubit encoding register
+    reg2 = QuantumRegister(8)
+    # Prepare 2 qubit ancilla register
+    reg3=QuantumRegister(2)
 
 
+    # Combine register 1 with encoding register
+    reg=reg1*reg2
+
+    # Apply encoding gate
+    reg= encode_9_gate*reg
+
+    # Combine register with ancilla gates
+    reg=reg*reg3
 
 
-'''
-H=Hadamard()
-N=Not()
-c_not=CUGate(Not())
-CN2=CUGate(N, num_of_i=1)
-I=IdentityGate()
-CCNot=build_c_c_not(num_control_i=1, num_target_i=1)
-rev= build_rev_c_c_not(num_control_i=1, num_target_i=1)
-hel=(I % c_not)
+
+    # Print register
+    print("Encoded 9 qubit register:")
+    print(reg)
+    print("\n")
+
+    # Induce a qubit phase flip and print register
+    z_gate = PhaseShift(np.pi)
+    reg = (IdentityGate(3) % z_gate % IdentityGate(7)) * reg
+
+    print("Qubit phase flip error induced")
+    print(reg)
+    print("\n")
 
 
-reg1=(N%I%I) * QuantumRegister(3)
-encode = build_3qubit_encode_gate()
+    # Apply ancilla gate
+    reg=ancilla_9_gate*reg
 
-reg1= encode * reg1
+    # Print register
+    print("Ancilla gates encoded")
+    print(reg)
+    print("\n")
 
-mess=(I%I%N)
+    # Apply correction gate
+    reg = correct_9_gate * reg
 
-reg1=mess*reg1
-
-reg2=QuantumRegister(2)
-reg=reg1*reg2
-
-qubitanc = build_3qubit_ancilla_gate()
-
-
-reg = qubitanc * reg
-
-correction = build_3qubit_correction_gate()
-
-reg = correction * reg
-
-'''
+    print("Corrected gate")
+    print(reg)
