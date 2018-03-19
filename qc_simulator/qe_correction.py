@@ -9,7 +9,7 @@ def build_rev_c_c_not(num_control_i=0, num_target_i=0):
     first control. By default these distances are set to 0 and 0 respectively.
     :param num_control_i:
     :param num_target_i:
-    :return: toffoli, toffoli gate (Operator Object)
+    :return gate: <Operator> Toffoli gate
     """
 
     # Initialise basis gates
@@ -28,7 +28,7 @@ def build_rev_c_c_not(num_control_i=0, num_target_i=0):
     c_v3 = CUGate(v3, num_of_i=num_target_i)
 
     # Build circuit
-    
+
     # if statement to differentiate between 0 control_i and any other value
     if num_control_i == 0:
         gate = (h_gate % I_total) * c_v_long  * (I_target % h_gate % h_gate)\
@@ -49,7 +49,8 @@ def build_rev_c_c_not(num_control_i=0, num_target_i=0):
 def build_rev_c_not(num_of_i=0):
     '''
     Builds a reverse c not gate
-    num_of_i is the number of qubits between the control and target
+    :param num_of_i: <int> Number of qubits between the control and target
+    :return gate: <Operator> Inverted not gate
     '''
 
 
@@ -69,7 +70,7 @@ def build_rev_c_not(num_of_i=0):
 def build_3qubit_encode_gate():
     """
     Encodes the second and third qubit for 3qubit quantum error correction
-    returns <operator> object
+    :return gate: <Operator>
     """
     I=IdentityGate()
     c_not=CUGate(Not())
@@ -80,8 +81,8 @@ def build_3qubit_encode_gate():
 
 def build_3qubit_ancilla_gate():
     """
-    updates the two ancilla gates for 3qubit quantum error correction
-    returns <operator> object
+    Updates the two ancilla gates for 3qubit quantum error correction
+    :return gate: <Operator> object
     """
     I=IdentityGate()
     c_not_1i=CUGate(Not(), num_of_i=1)
@@ -94,11 +95,11 @@ def build_3qubit_ancilla_gate():
 
 def build_3qubit_correction_gate():
     """
-    Corrects a single qubit bit error in 3qubit quantum error correction
+    Corrects a single qubit bit error in 3 qubit quantum error correction
     using information from ancilla qubits.
-    returns <operator> object
+    :return gate: <Operator> object
     """
-    
+
     rev_c_c_not = build_rev_c_c_not()
     rev_c_c_not_1i = build_rev_c_c_not(num_target_i = 1)
     rev_c_c_not_2i = build_rev_c_c_not(num_target_i = 2)
@@ -113,7 +114,7 @@ def build_3qubit_correction_gate():
 def build_9qubit_encode_gate():
     """
     Encodes the second to eighth qubit for 9qubit quantum error correction
-    returns <operator> object
+    :return gate: <Operator> object
     """
     c_not_2i=CUGate(Not(), num_of_i=2)
     c_not_5i=CUGate(Not(), num_of_i=5)
@@ -131,10 +132,10 @@ def build_9qubit_encode_gate():
 
 def build_9qubit_ancilla_gate():
     """
-    updates the two ancilla gates for 9qubit quantum error correction
-    returns <operator> object
+    updates the two ancilla gates for 9qubit quantum error correction.
+    :return gate: <Operator> object
     """
-    
+
     h_gate =  Hadamard(9)
     N =Not()
     c_not_1i = CUGate(N, num_of_i = 1)
@@ -163,9 +164,9 @@ def build_9qubit_correction_gate():
     """
     Corrects a single qubit flip error in 9qubit quantum error correction
     using information from ancilla qubits.
-    returns <operator> object
+    :return gate: <Operator> object
     """
-    
+
     I = IdentityGate()
     z = PhaseShift(np.pi)
     c_c_z_8i = CUGate(z, n_control=2, num_of_i=[8,0])
