@@ -228,14 +228,14 @@ class Operator(AbstractOperator):
     OperatorAbstract. The operator is stored as a square sparse matrix.
     """
 
-    def __init__(self, n_qubits=1, base=np.zeros((2, 2))):
+    def __init__(self, n_qubits: int = 1, base=np.zeros((2, 2))):
         """
          Class constructor
          :param n_qubits: <int> Number of qubits operator operates on
          :param base: <np.array> Base matrix
         """
         # Check if number of qubits is correct
-        if n_qubits <= 0:
+        if n_qubits <= 0 :
             raise ValueError('Operator must operate on at least 1 qubit!')
 
         self.n_qubits = n_qubits
