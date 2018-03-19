@@ -54,7 +54,8 @@ class shors:
     
     def find_period(self, N, m):
         n_qubits = len(format((N+1),'b'))
-        n_qubits = n_qubits
+        if n_qubits%2!=0:
+            n_qubits = n_qubits+1
         print("find period with ", n_qubits, " qubits")
         QR1 = QuantumRegister(n_qubits)
         QR1 = Hadamard(n_qubits)*QR1
@@ -117,10 +118,11 @@ class shors:
             return IdentityGate(n)
         else:
             M1 = CUGate(Not())
+            print(M1.matrix.shape)
             M1 = self.flip_not_gate(M1)*M1
             M1 = CUGate(Not())*M1
             M = M1
-            for i in range(int(n/2)-1):
+            for i in range(int((n-1)/2)):
                 M = M1%M
             print(M.n_qubits)
             return M
