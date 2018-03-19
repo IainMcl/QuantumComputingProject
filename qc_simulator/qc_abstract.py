@@ -24,7 +24,7 @@ class AbstractQuantumRegister(ABC):
         pass
 
     @abstractclassmethod
-    def __mul__(self, other):
+    def __mul__(self, other: 'AbstractQuantumRegister')-> 'AbstractQuantumRegister' :
         """
         Define multiplication between quantum registers
         """
@@ -47,7 +47,7 @@ class AbstractOperator(ABC):
         pass
 
     @abstractclassmethod
-    def __mod__(self, other):
+    def __mod__(self, other: 'AbstractOperator') -> 'AbstractOperator' :
         """
         Define tensor product between operators
         """
@@ -58,4 +58,4 @@ class AbstractOperator(ABC):
         """
         Define print method for operator objectself.
         """
-        pass 
+        pass
