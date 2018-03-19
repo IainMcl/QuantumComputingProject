@@ -120,21 +120,6 @@ class QuantumRegister(IQuantumRegister):
         return rep
 
 
-    def remove_aux(self, a=1/np.sqrt(2)):
-        """
-        DEPRECETED
-        Removes auxillary qubit from quantum register.
-        Requires previous knowledge of auxilary qubit. Usage is meant for phase
-        kickback operations.
-        :param a:
-        """
-
-        # Remove every second element of the base state array. Then divide every element by a
-        base_states = self.base_states
-        new_base_state = base_states[::2] / a
-        self.base_states = new_base_state
-        self.n_qubits = int( self.n_qubits - 1)
-        self.n_states = int( self.n_states / 2)
 
     def split(self, n_a, n_b):
         """
@@ -395,27 +380,27 @@ class CUGate(Operator):
     Class that implements a controlled U gate.
     """
 
-    def __init__(self, base, n_control=1, num_of_i=0):
+    def __init__(self, base, n_control=1, empty_qw=0):
         """
         Class constructor.
         :param base: <Operator> base Operator U
         :param n_control: <int> number of control qubits
-        :param num_of_i: <int>, <list> number of empty lines between control
+        :param empty_qw: <int>, <list> number of empty lines between control
         qubits and target qubits.
-        If there are no empty lines, leave equal to 0. If there are, num_of_i
+        If there are no empty lines, leave equal to 0. If there are, empty_qw
         must be a list with n_control-1 elements, each indicating the number of
         empty lines between control-control and finally control-target eg [1,0,1]
         """
-        if not isinstance(num_of_i, int):
-            if len(num_of_i) != n_control:
+        if not isinstance(empty_qw, int):
+            if len(empty_qw) != n_control:
                 raise ValueError('Number of empty lines must correctly specified!')
-        elif     n_control !=1 and num_of_i!=0:
+        elif     n_control !=1 and empty_qw!=0:
                 raise ValueError('Number of empty lines must be correctly specified!')
 
         self.n_control = n_control
-        self.n_qubits = 1 + self.n_control + np.sum(num_of_i)
+        self.n_qubits = 1 + self.n_control + np.sum(empty_qw)
         self.size = 2 ** (self.n_qubits)
-        self.num_of_i = num_of_i
+        self.empty_qw = empty_qw
         self.matrix = self.__create_sparse_matrix(base)
 
     def __create_sparse_matrix(self, base):
@@ -434,7 +419,7 @@ class CUGate(Operator):
         # Create full sparse identity matrix
         sparse_matrix = sparse_identity(self.size, dtype=complex, format='lil')
 
-        if np.sum(self.num_of_i) == 0:
+        if np.sum(self.empty_qw) == 0:
             # "Put" dense hadamard matrix in sparse matrix
             target_states = 2
             sub_matrix_index = self.size - target_states
@@ -476,9 +461,9 @@ class CUGate(Operator):
         else:
             control_qubit_indices = np.arange(self.n_control)
 
-            # Exclude the item of self.num_of_i because it's the number of empty
+            # Exclude the item of self.empty_qw because it's the number of empty
             # lines between the last control and first target qubit
-            control_qubit_indices[1:] = control_qubit_indices[1:] + self.num_of_i[:-1]
+            control_qubit_indices[1:] = control_qubit_indices[1:] + self.empty_qw[:-1]
 
             return control_qubit_indices
 

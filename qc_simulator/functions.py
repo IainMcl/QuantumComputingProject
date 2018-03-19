@@ -98,29 +98,29 @@ def oracle_single_tag(n, tag):
 
     return cnz_gate
 
-def build_c_c_not(num_control_i=0, num_target_i=0):
+def build_c_c_not(empty_qw_control=0, empty_qw_target=0):
     """
     Builds a toffoli gate, given the number of I operators between the second control and the target qubit from the
     first control. By default these distances are set to 0 and 0 respectively.
-    :param num_control_i:
-    :param num_target_i:
+    :param empty_qw_control:
+    :param empty_qw_target:
     :return: toffoli, toffoli gate (Operator Object)
     """
 
     # Initialise basis gates
     h_gate = Hadamard()
     I = IdentityGate()
-    I_target = IdentityGate(num_target_i + 1)
-    I_control = IdentityGate(num_control_i + 1)
-    I_total = IdentityGate(num_target_i + num_control_i + 2)
+    I_target = IdentityGate(empty_qw_target + 1)
+    I_control = IdentityGate(empty_qw_control + 1)
+    I_total = IdentityGate(empty_qw_target + empty_qw_control + 2)
 
     v_gate = PhaseShift(np.pi / 2)
-    c_v_short = CUGate(v_gate, num_of_i=num_target_i)
-    c_v_long = CUGate(v_gate, num_of_i=num_target_i+num_control_i + 1)
+    c_v_short = CUGate(v_gate, empty_qw=empty_qw_target)
+    c_v_long = CUGate(v_gate, empty_qw=empty_qw_target+empty_qw_control + 1)
 
-    c_not = CUGate(Not(), num_of_i=num_control_i)
+    c_not = CUGate(Not(), empty_qw=empty_qw_control)
     v3 = v_gate * v_gate * v_gate
-    c_v3 = CUGate(v3, num_of_i=num_target_i)
+    c_v3 = CUGate(v3, empty_qw=empty_qw_target)
 
     # Build circuit
     toffoli = (I_total % h_gate) * c_v_long * (c_not % I_target) * (I_control % c_v3) \
@@ -128,63 +128,63 @@ def build_c_c_not(num_control_i=0, num_target_i=0):
 
     return toffoli
 
-def build_rev_c_c_not(num_control_i=0, num_target_i=0):
+def build_rev_c_c_not(empty_qw_control=0, empty_qw_target=0):
     """
     Builds a reverse toffoli gate, given the number of I operators between the second control and the target qubit from the
     first control. By default these distances are set to 0 and 0 respectively.
-    :param num_control_i:
-    :param num_target_i:
+    :param empty_qw_control:
+    :param empty_qw_target:
     :return: toffoli, toffoli gate (Operator Object)
     """
 
     # Initialise basis gates
     h_gate = Hadamard()
     I = IdentityGate()
-    I_target = IdentityGate(num_target_i + 1)
-    I_control = IdentityGate(num_control_i + 1)
-    I_total = IdentityGate(num_target_i + num_control_i + 2)
+    I_target = IdentityGate(empty_qw_target + 1)
+    I_control = IdentityGate(empty_qw_control + 1)
+    I_total = IdentityGate(empty_qw_target + empty_qw_control + 2)
 
     v_gate = PhaseShift(np.pi / 2)
-    c_v_short = CUGate(v_gate, num_of_i=num_target_i)
-    c_v_long = CUGate(v_gate, num_of_i=num_target_i+num_control_i + 1)
+    c_v_short = CUGate(v_gate, empty_qw=empty_qw_target)
+    c_v_long = CUGate(v_gate, empty_qw=empty_qw_target+empty_qw_control + 1)
 
-    c_not = CUGate(Not(), num_of_i=num_control_i)
+    c_not = CUGate(Not(), empty_qw=empty_qw_control)
     v3 = v_gate * v_gate * v_gate
-    c_v3 = CUGate(v3, num_of_i=num_target_i)
+    c_v3 = CUGate(v3, empty_qw=empty_qw_target)
 
     # Build circuit
 
-    if num_control_i == 0:
+    if empty_qw_control == 0:
         gate = (h_gate % I_total) * c_v_long  * (I_target % h_gate % h_gate)\
         * (I_target % c_not) * (I_target % h_gate % h_gate) * (c_v3 % I_control)\
         * (I_target % h_gate %  h_gate) * (I_target % c_not)\
         * (I_target % h_gate %  h_gate) * (c_v_short % I_control) * (h_gate % I_total)
     else:
 
-        gate = (h_gate % I_total) * c_v_long  * (I_target % h_gate % IdentityGate(num_control_i) % h_gate)\
-        * (I_target % c_not) * (I_target % h_gate % IdentityGate(num_control_i) % h_gate) * (c_v3 % I_control)\
-        * (I_target % h_gate % IdentityGate(num_control_i) % h_gate) * (I_target % c_not)\
-        * (I_target % h_gate % IdentityGate(num_control_i) % h_gate) * (c_v_short % I_control) * (h_gate % I_total)
+        gate = (h_gate % I_total) * c_v_long  * (I_target % h_gate % IdentityGate(empty_qw_control) % h_gate)\
+        * (I_target % c_not) * (I_target % h_gate % IdentityGate(empty_qw_control) % h_gate) * (c_v3 % I_control)\
+        * (I_target % h_gate % IdentityGate(empty_qw_control) % h_gate) * (I_target % c_not)\
+        * (I_target % h_gate % IdentityGate(empty_qw_control) % h_gate) * (c_v_short % I_control) * (h_gate % I_total)
 
 
 
     return gate
 
-def build_rev_c_not(num_of_i=0):
+def build_rev_c_not(empty_qw=0):
     '''
     Builds a reverse c not gate
-    num_of_i is the number of qubits between the control and target
+    empty_qw is the number of qubits between the control and target
     '''
 
 
     h_gate = Hadamard()
-    c_not = CUGate(Not(), num_of_i=num_of_i)
+    c_not = CUGate(Not(), empty_qw=empty_qw)
 
-    if num_of_i == 0:
+    if empty_qw == 0:
         gate = (h_gate % h_gate) * c_not * (h_gate % h_gate)
 
     else:
-        I = IdentityGate(n_qubits=num_of_i)
+        I = IdentityGate(n_qubits=empty_qw)
         gate = (h_gate % I % h_gate) * c_not * (h_gate % I % h_gate)
 
     return gate
