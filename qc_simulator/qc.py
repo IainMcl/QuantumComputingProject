@@ -19,9 +19,9 @@ import matplotlib.pyplot as plt
 from copy import deepcopy
 
 #import abstract classes
-from qc_simulator.qc_abstract import *
+from qc_simulator.qc_interface import *
 
-class QuantumRegister(AbstractQuantumRegister):
+class QuantumRegister(IQuantumRegister):
     """
     Quantum register class. The quantum register is saved as a complex
     numpy array. Each element of the array is the amplitude of the
@@ -30,7 +30,7 @@ class QuantumRegister(AbstractQuantumRegister):
     """
 
 
-    def __init__(self, n_qubits=1, isempty=False):
+    def __init__(self, n_qubits: int = 1, base_states = None):
         """
         Class constructor
         :param n_qubits: <int> number of qubits in quantum register
@@ -38,15 +38,26 @@ class QuantumRegister(AbstractQuantumRegister):
         Set to False by default.
         """
         # Check that qubits is bigger than 0
-        if n_qubits <= 0 :
-            raise ValueError('Quantum register must have at least 1 qubit!')
+        if n_qubits <= 0 or (not isinstance(n_qubits, int)):
+            raise ValueError(
+            'Quantum register must have at least 1 qubit of integer type!')
 
         self.n_states = int(2 ** n_qubits)
         self.n_qubits = n_qubits
-        self.base_states = np.zeros(self.n_states, dtype=complex)
         # If isempty = False, initialise in ground state
-        if not isempty:
+        if base_states == None:
+            self.base_states = np.zeros(self.n_states, dtype=complex)
             self.base_states[0] = 1.0
+        else:
+            # Check if length is correct
+            if len(base_states) != self.n_states:
+                raise ValueError(
+                'Length of base states is incorrect!'
+                )
+
+            self.base_states = np.array(base_states, dtype=complex)
+            #Normalise
+            self.normalise()
 
     def measure(self):
         """
@@ -111,6 +122,7 @@ class QuantumRegister(AbstractQuantumRegister):
 
     def remove_aux(self, a=1/np.sqrt(2)):
         """
+        DEPRECETED
         Removes auxillary qubit from quantum register.
         Requires previous knowledge of auxilary qubit. Usage is meant for phase
         kickback operations.
@@ -222,7 +234,7 @@ class QuantumRegister(AbstractQuantumRegister):
         #b.add_states(objs)
         b.show()
 
-class Operator(AbstractOperator):
+class Operator(IOperator):
     """
     Class that defines a quantum mechanical operator. Implments abstract class
     OperatorAbstract. The operator is stored as a square sparse matrix.
@@ -355,7 +367,7 @@ class Hadamard(Operator):
     Class that defines hadamard gate. This class extends the Operator class.
     """
 
-    def __init__(self, n_qubits=1):
+    def __init__(self, n_qubits: int =1):
         # Define "base" hadamard matrix for one qubit and correponding sparse matrix
         self.base = 1 / np.sqrt(2) * np.array([[1, 1], [1, -1]])
         super(Hadamard, self).__init__(n_qubits, self.base)
@@ -365,7 +377,7 @@ class PhaseShift(Operator):
     Class that implements phase shift gate
     """
 
-    def __init__(self, phi, n_qubits=1):
+    def __init__(self, phi, n_qubits: int =1):
         self.base = np.array([[1, 0], [0, np.exp(1j * phi)]])
         super(PhaseShift, self).__init__(n_qubits, self.base)
 
@@ -553,3 +565,19 @@ class SWAPGate(Operator):
 
         # Convert dense matrix to csc_matrix
         return csc_matrix(dense_matrix)
+
+class Testing(IOperator):
+
+    def __init__(self, k):
+        self.k = k
+
+    def __mul__(self, rhs):
+        if isinstance(rhs, IOperator):
+            print('Operator type')
+        if isinstance(rhs, IQuantumRegister):
+            print('Quantum register ')
+    def __mod__(self):
+        pass
+
+    def __str__(self):
+        return('hello')

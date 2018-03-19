@@ -13,7 +13,7 @@ methods to implement are restricted to:
 
 from abc import ABC, abstractclassmethod
 
-class AbstractQuantumRegister(ABC):
+class IQuantumRegister(ABC):
 
 
     @abstractclassmethod
@@ -24,7 +24,7 @@ class AbstractQuantumRegister(ABC):
         pass
 
     @abstractclassmethod
-    def __mul__(self, other: 'AbstractQuantumRegister')-> 'AbstractQuantumRegister' :
+    def __mul__(self, other: 'IQuantumRegister')-> 'IQuantumRegister' :
         """
         Define multiplication between quantum registers
         """
@@ -36,7 +36,7 @@ class AbstractQuantumRegister(ABC):
         Define print method for the quantum register
         """
 
-class AbstractOperator(ABC):
+class IOperator(ABC):
 
     @abstractclassmethod
     def __mul__(self, rhs):
@@ -47,7 +47,7 @@ class AbstractOperator(ABC):
         pass
 
     @abstractclassmethod
-    def __mod__(self, other: 'AbstractOperator') -> 'AbstractOperator' :
+    def __mod__(self, other: 'IOperator') -> 'IOperator' :
         """
         Define tensor product between operators
         """
