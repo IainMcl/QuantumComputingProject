@@ -1,5 +1,5 @@
 import numpy as np
-from qc_simulator import *
+from qc_simulator.qc import *
 #from qc_simulator.functions import *
 from math import gcd
 
@@ -91,7 +91,7 @@ class shors:
             M1 = (IdentityGate(j+1)%CUGate(PhaseShift(phi),1,n-3-j))
             M = M1*M
         M = (IdentityGate(n-1)%H)*M
-        M = self.swap_gate(n)*M
+        M = SWAPGate(n_qubits)(n)*M
         return M
 
 
@@ -111,6 +111,8 @@ class shors:
         print(states)
         QR = QR1*QR2
         return QR
+
+    
 
     def swap_gate(self, n=2):
         print("swap")
