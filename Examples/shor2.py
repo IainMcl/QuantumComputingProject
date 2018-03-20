@@ -5,9 +5,17 @@ from math import gcd
 
 class Shors:
     """
-    
+    shors factoring class returns set of factors
     """
-    def __init__(self, N):
+    def __init__(self, N, tries=10, accuracy=1):
+        """
+        N number to be factored
+        tries number of tries to find factors
+        when creating QRs the calculation is
+        bits required to store int((N+1)*accuracy)
+        so accuracy can be a float
+        """
+        self.accuracy = accuracy
         cs = []
         print("shor's algorithum")
         if N%2 == 0:
@@ -15,7 +23,7 @@ class Shors:
             N = int(N/2)
             #print("------------", cs)
         print("input: ",N)
-        for i in range(8):
+        for i in range(tries):
             c = self.classical(N)
             if c == [0]:
                 break
@@ -28,37 +36,48 @@ class Shors:
         cs = set(cs)
         if cs =={}:
             print("is N a prime")
-            self.out = Shors(N)
+            self.out = Shors(N,tries,accuracy)
         else:
             self.out = set(cs)
 
     def classical(self, N):
+        """
+        clasical component of the algorithum
+        """
         if self.check_prime(N):
             print("classical")
             m = np.random.randint(2,N-1)
             #m = 2
             d = gcd(m,N)
             if d!=1:#  
-                print("easy: ")
+                print("Quantum computing required: ")
                 return [d]
             else:
-                print("though",m," :")
+                print("Quantum computing required",m," :")
                 p = self.find_period(N,m)
-                print("period(p): ",p)
-                print("m**p: ",m**p)
-                print("m**(p/2): ",m**(p/2))
+                #print("period(p): ",p)
+                #print("m**p: ",m**p)
+                #print("m**(p/2): ",m**(p/2))
                 return self.period_check(N,m,p)
         else:
             print("its a prime")
             return [0]
 
     def check_prime(self,N):
+        """
+        check if N is a prime or not
+        return true if not prime
+        """
         for i in range(2, N):
-            if i%N == 0:
+            if N%i == 0:
                 return True
         return False
 
     def period_check(self, N, m, p):
+        """
+        checks to see if the period is aceptable
+        returns factor if acceptable
+        """
         if p%2 != 0:
             print("oops-------1")
             return self.classical(N)
@@ -74,7 +93,10 @@ class Shors:
 
 
     def find_period(self, N, m):
-        n_qubits = len(format((N+1),'b'))
+        """
+        finds period 
+        """
+        n_qubits = len(format(int((N+1)*self.accuracy),'b'))
         if n_qubits%2!=0:
             n_qubits = n_qubits+1
         print("find period with ", n_qubits, " qubits")
@@ -111,6 +133,10 @@ class Shors:
 
 
     def QFT(self, n):
+        """
+        quantum fourier tansform
+        returns quantum fourier tansform matrix for n qubits
+        """
         print("QFT")
         H = Hadamard()
         M = H%IdentityGate(n-1)
@@ -139,7 +165,9 @@ class Shors:
 
     def fmapping_lazy(self, QR1, QR2, N, m, n_qubits):
         """
-        x mod N
+        maps|x> and |o> onto |x>|f(x)>
+        f(x) = m^x mod N
+        returns |x>|f(x)>
         """
         print("lazy mapping")
         #n_qubits = QR1.n_qubits
@@ -255,6 +283,6 @@ class Shors:
         M = M2*M1*M
         return M
 
-a = Shors(3)
+a = Shors(57, 20, 1.1)
 a = a.out
 print("we get: ",a)
