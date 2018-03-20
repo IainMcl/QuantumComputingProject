@@ -1,5 +1,5 @@
 import numpy as np
-from qc_simulator import *
+from qc_simulator.qc import *
 #from qc_simulator.functions import *
 from math import gcd
 
@@ -9,34 +9,53 @@ class Shors():
     all based on thing on git
     """
     def __init__(self, N):
+        self.cs = []
         print("shor's algorithum")
         if N%2 == 0:
             print("odd number please")
             self.out = N/2
         else:
             print("input: ",N)
-            self.out = self.classical(N)
+            cs = []
+            for i in range(8):
+                c = self.classical(N)
+                print(c, cs)
+                cs.extend(c)
+            cs = [c for c in cs if c!=1]
+            self.out = set(cs)
 
     def classical(self, N):
         print("classical")
-        m = np.random.randint(1,N-1)
-        if gcd(m,N)!=1:
+        m = np.random.randint(2,N-1)
+        #m = 2
+        if False: #gcd(m,N)!=1:#  
             print("easy: ")
             return m
         else:
             print("though",m," :")
             p = self.find_period(N,m)
-            if p%2 != 0:
-                print("oops1")
-                return self.classical(N)
-            elif (m**p)%N == 0:
-                print("oops2")
-                return self.classical(N)
-            else:
-                return gcd(int(m**(p/2)-1), N), gcd(int(m**(p/2)+1), N)
+            print("period(p): ",p)
+            print("m**p: ",m**p)
+            print("m**(p/2): ",m**(p/2))
+            return self.period_check(N,m,p)
+
+    def period_check(self, N, m, p):
+        if p%2 != 0:
+            print("oops-------1")
+            return self.classical(N)
+        elif (m**(p/2))%N == 1%N:
+            print("oops-------2")
+            return self.classical(N)
+        elif (m**(p/2))%N == -1%N:
+            print("oops------3")
+            return self.classical(N)
+        else:
+            c = [gcd(N, int(m**(p/2)-1)), gcd(N, int(m**(p/2)+1))]
+            return c
+
 
     def find_period(self, N, m):
-        n_qubits = len(format((N*2+1),'b'))
+        n_qubits = len(format((N+1),'b'))
         if n_qubits%2!=0:
             n_qubits = n_qubits+1
         print("find period with ", n_qubits, " qubits")
@@ -46,19 +65,29 @@ class Shors():
         QR = self.fmapping_lazy(QR1, QR2, N, m, n_qubits)
         QFT = self.QFT(n_qubits)
         QR = (QFT%IdentityGate(n_qubits))*QR
-        c = self.get_p(QR)
+        states = QR.base_states
+        print(states)
+        print("measureing")
+        #c = self.get_p(QR)
+        #print(c)
+        #c = gcd(QR.measure(), QR.measure())
+        #c = gcd(self.mes(QR), self.mes(QR))
+        c = self.mes(QR)
+        print("measured")
         #print(c)
         return c
 
     def get_p(self,QR):
-        c = 1
+        c = self.mes(QR)
+        for i in range(2):
+            c = gcd(c, self.mes(QR))
+        return c
+
+    def mes(self,QR):
+        c=1
         while c == 1:
             c = QR.measure()
-        mes = 1
-        for i in range(2):
-            while mes == 1:
-                mes = QR.measure()
-            c = gcd(c, mes)
+        print(c)
         return c
 
 
@@ -101,13 +130,13 @@ class Shors():
         for i in range(n_states):
             x = int(np.mod(m**i, N))
             states[x] = states[x] +1
+        QR2.normalise()
         QR2.base_states = states
-        #print(states)
         QR = QR1*QR2
         return QR
 
 
-# not being used from here downwards
+# not being used from here downwards-------------------------
 
     def swap_gate(self, n=2):
         print("swap")
@@ -207,6 +236,6 @@ class Shors():
         M = M2*M1*M
         return M
 
-a=Shors(15)
-a=a.out
+a = Shors(35)
+a = a.out
 print("we get: ",a)
