@@ -13,7 +13,7 @@ class Shors():
         print("shor's algorithum")
         if N%2 == 0:
             print("odd number please")
-            self.out = N/2
+            self.out = 2
         else:
             print("input: ",N)
             cs = []
