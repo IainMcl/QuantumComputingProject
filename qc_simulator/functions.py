@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue Feb 20 15:22:28 2018
-
-@author: Lewis
+File containing helper functions. 
 """
 #!/usr/bin/env python3
 
@@ -10,38 +8,6 @@ from qc_simulator.qc import *
 import numpy as np
 import math
 
-
-def quantumAdder(a,b):
-    """
-    Implements a quantum addition circuit using a C-Not and Toffoli Gates
-    Takes in 2 single qubit quantum registers as input
-    returns a quantum register containing the sum of the values of the 2 input registers
-
-    currently implements the circuit but fails to return the right thing
-    """
-    x0 = QuantumRegister(a.n_qubits)
-    CN = CUGate(Not(),1)
-    I = Operator(3, np.eye(3))
-    CNN = CUGate(Not(),2)
-    reg1 = a*b*x0
-    reg1 = CNN*reg1
-    I = Operator(reg1.n_qubits, np.eye(3))
-    CN = I%CN
-    reg2 = CN*reg1
-    k = reg2.measure()
-    #untensorfy here
-    return k
-
-def GetQuBitofValue(theta, phi):
-    """
-    Implements a setter circuit, setting the value of
-    """
-    register = QuantumRegister()
-    H = Hadamard()
-    P1 = PhaseShift(2*theta,register.n_qubits)
-    P2 = PhaseShift((np.pi*0.5)+phi,register.n_qubits)
-    result = H*P1*H*P2*register
-    return result
 
 
 def oracle_single_tag(n, tag):
@@ -98,6 +64,7 @@ def oracle_single_tag(n, tag):
 
     return cnz_gate
 
+
 def build_c_c_not(empty_qw_control=0, empty_qw_target=0):
     """
     Builds a toffoli gate, given the number of I operators between the second control and the target qubit from the
@@ -127,6 +94,7 @@ def build_c_c_not(empty_qw_control=0, empty_qw_target=0):
        * (c_not % I_target) * (I_control % c_v_short) * (I_total % h_gate)
 
     return toffoli
+
 
 def build_rev_c_c_not(empty_qw_control=0, empty_qw_target=0):
     """
@@ -166,14 +134,56 @@ def build_rev_c_c_not(empty_qw_control=0, empty_qw_target=0):
         * (I_target % h_gate % IdentityGate(empty_qw_control) % h_gate) * (I_target % c_not)\
         * (I_target % h_gate % IdentityGate(empty_qw_control) % h_gate) * (c_v_short % I_control) * (h_gate % I_total)
 
+    return gate
 
+
+def build_rev_c_c_not(empty_qw_control=0, empty_qw_target=0):
+    """
+    Builds a reverse toffoli gate, given the number of I operators between the second control and the target qubit from the
+    first control. By default these distances are set to 0 and 0 respectively.
+    :param empty_qw_control: <int> number of empty quantum wires between the two control qubits
+    :param empty_qw_target: <int> number of empty quantum wires between second control and target qubits
+    :return gate: <Operator> Inverted Toffoli gate
+    """
+
+    # Initialise basis gates
+    h_gate = Hadamard()
+    I = IdentityGate()
+    I_target = IdentityGate(empty_qw_target + 1)
+    I_control = IdentityGate(empty_qw_control + 1)
+    I_total = IdentityGate(empty_qw_target + empty_qw_control + 2)
+
+    v_gate = PhaseShift(np.pi / 2)
+    c_v_short = CUGate(v_gate, empty_qw=empty_qw_target)
+    c_v_long = CUGate(v_gate, empty_qw=empty_qw_target+empty_qw_control + 1)
+
+    c_not = CUGate(Not(), empty_qw=empty_qw_control)
+    v3 = v_gate * v_gate * v_gate
+    c_v3 = CUGate(v3, empty_qw=empty_qw_target)
+
+    # Build circuit
+
+    # if statement to differentiate between 0 control_i and any other value
+    if empty_qw_control == 0:
+        gate = (h_gate % I_total) * c_v_long  * (I_target % h_gate % h_gate)\
+        * (I_target % c_not) * (I_target % h_gate % h_gate) * (c_v3 % I_control)\
+        * (I_target % h_gate %  h_gate) * (I_target % c_not)\
+        * (I_target % h_gate %  h_gate) * (c_v_short % I_control) * (h_gate % I_total)
+    else:
+
+        gate = (h_gate % I_total) * c_v_long  * (I_target % h_gate % IdentityGate(empty_qw_control) % h_gate)\
+        * (I_target % c_not) * (I_target % h_gate % IdentityGate(empty_qw_control) % h_gate) * (c_v3 % I_control)\
+        * (I_target % h_gate % IdentityGate(empty_qw_control) % h_gate) * (I_target % c_not)\
+        * (I_target % h_gate % IdentityGate(empty_qw_control) % h_gate) * (c_v_short % I_control) * (h_gate % I_total)
 
     return gate
+
 
 def build_rev_c_not(empty_qw=0):
     '''
     Builds a reverse c not gate
-    empty_qw is the number of qubits between the control and target
+    :param empty_qw: <int> Number of qubits between the control and target
+    :return gate: <Operator> Inverted not gate
     '''
 
 
@@ -188,6 +198,8 @@ def build_rev_c_not(empty_qw=0):
         gate = (h_gate % I % h_gate) * c_not * (h_gate % I % h_gate)
 
     return gate
+
+
 
 
 

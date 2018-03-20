@@ -355,8 +355,8 @@ class Hadamard(Operator):
 
     def __init__(self, n_qubits: int =1):
         # Define "base" hadamard matrix for one qubit and correponding sparse matrix
-        self.base = 1 / np.sqrt(2) * np.array([[1, 1], [1, -1]])
-        super(Hadamard, self).__init__(n_qubits, self.base)
+        base = 1 / np.sqrt(2) * np.array([[1, 1], [1, -1]])
+        super(Hadamard, self).__init__(n_qubits, base)
 
 class PhaseShift(Operator):
     """
@@ -364,8 +364,8 @@ class PhaseShift(Operator):
     """
 
     def __init__(self, phi, n_qubits: int =1):
-        self.base = np.array([[1, 0], [0, np.exp(1j * phi)]])
-        super(PhaseShift, self).__init__(n_qubits, self.base)
+        base = np.array([[1, 0], [0, np.exp(1j * phi)]])
+        super(PhaseShift, self).__init__(n_qubits, base)
 
 class Not(Operator):
     """
@@ -373,8 +373,8 @@ class Not(Operator):
     """
 
     def __init__(self, n_qubits=1):
-        self.base = np.array([[0, 1], [1, 0]])
-        super(Not, self).__init__(n_qubits, self.base)
+        base = np.array([[0, 1], [1, 0]])
+        super(Not, self).__init__(n_qubits, base)
 
 class CUGate(Operator):
     """
