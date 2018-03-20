@@ -17,6 +17,8 @@ class Shors:
         print("input: ",N)
         for i in range(8):
             c = self.classical(N)
+            if c == [0]:
+                break
             print(c, cs)
             cs.extend(c)
         cs = np.array(cs)
@@ -31,20 +33,30 @@ class Shors:
             self.out = set(cs)
 
     def classical(self, N):
-        print("classical")
-        m = np.random.randint(2,N-1)
-        #m = 2
-        d = gcd(m,N)
-        if d!=1:#  
-            print("easy: ")
-            return [d]
+        if self.check_prime(N):
+            print("classical")
+            m = np.random.randint(2,N-1)
+            #m = 2
+            d = gcd(m,N)
+            if d!=1:#  
+                print("easy: ")
+                return [d]
+            else:
+                print("though",m," :")
+                p = self.find_period(N,m)
+                print("period(p): ",p)
+                print("m**p: ",m**p)
+                print("m**(p/2): ",m**(p/2))
+                return self.period_check(N,m,p)
         else:
-            print("though",m," :")
-            p = self.find_period(N,m)
-            print("period(p): ",p)
-            print("m**p: ",m**p)
-            print("m**(p/2): ",m**(p/2))
-            return self.period_check(N,m,p)
+            print("its a prime")
+            return [0]
+
+    def check_prime(self,N):
+        for i in range(2, N):
+            if i%N == 0:
+                return True
+        return False
 
     def period_check(self, N, m, p):
         if p%2 != 0:
@@ -243,6 +255,6 @@ class Shors:
         M = M2*M1*M
         return M
 
-a = Shors(18)
+a = Shors(3)
 a = a.out
 print("we get: ",a)
