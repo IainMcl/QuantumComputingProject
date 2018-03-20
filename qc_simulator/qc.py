@@ -197,7 +197,8 @@ class QuantumRegister(IQuantumRegister):
         :param show: <bool> Flag that if set to true, shows the bar graph.
         :return: ax, axis handle object.
         """
-        ax = plt.bar(np.arange(2**self.n_qubits),np.absolute(self.base_states))
+        fig, ax = plt.subplots()
+        rects1 = ax.bar(np.arange(2**self.n_qubits),np.absolute(self.base_states))
         if show:
             plt.show()
         return ax

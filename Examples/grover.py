@@ -4,7 +4,7 @@ import numpy as np
 import math
 from matplotlib import pyplot as plt
 
-def grover(oracle, k=1):
+def grover(oracle, k=1, plot = False):
     '''
     Grover search.
     Inputs: Oracle -> Oracle gate that tags one state
@@ -53,6 +53,12 @@ def grover(oracle, k=1):
         # Apply grover iteration
         register=oracle * register
         register = W * register
+        if plot:
+            ax = register.plot_register(False)
+            ax.set_title("Amplitude of Base States at iteration {} of Grover's Algorithm".format(i))
+            ax.set_xlabel("Base State")
+            ax.set_ylabel("Amplitude")
+            plt.show()
 
 
 
@@ -93,7 +99,7 @@ if __name__=='__main__':
     n_runs = 1
     results = np.zeros(n_runs, dtype=int)
     for i in range(n_runs):
-        measurement=grover(oracle1,k=1)
+        measurement=grover(oracle1,k=1, plot=True)
         results[i] = measurement[1]
 
     # Return number measured most often together with the accuracy
