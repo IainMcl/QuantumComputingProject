@@ -1,4 +1,4 @@
-from qc import *
+from qc_simulator.qc import *
 from functions import *
 import math
 import numpy as np

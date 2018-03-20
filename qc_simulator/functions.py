@@ -6,7 +6,7 @@ Created on Tue Feb 20 15:22:28 2018
 """
 #!/usr/bin/env python3
 
-from qc import *
+from qc_simulator.qc import *
 import numpy as np
 import math
 
