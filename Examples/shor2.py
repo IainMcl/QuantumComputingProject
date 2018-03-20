@@ -94,7 +94,8 @@ class Shors:
 
     def find_period(self, N, m):
         """
-        finds period 
+        finds period in for N the number to be factored
+        and m the base of the powers, f(x) = m**x mod N 
         """
         n_qubits = len(format(int((N+1)*self.accuracy),'b'))
         if n_qubits%2!=0:
@@ -119,12 +120,21 @@ class Shors:
         return c
 
     def get_p(self,QR):
+        """
+        not curently in use
+        for taking repeted measurments
+        don't this its a good idea
+        """
         c = self.mes(QR)
         for i in range(2):
             c = gcd(c, self.mes(QR))
         return c
 
     def mes(self,QR):
+        """
+        takes and returns measurment of quantum register QR
+        only reurns when the measurment QR is not 1
+        """
         c=1
         while c == 1:
             c = QR.measure()
@@ -183,7 +193,10 @@ class Shors:
         return QR
 
 
-# not being used from here downwards-------------------------
+# -------------------------
+# =============================================================================
+# #not being used from here downwards, to be moved into old folder-------------------------------------------------------
+# =============================================================================
 
     def swap_gate(self, n=2):
         print("swap")
