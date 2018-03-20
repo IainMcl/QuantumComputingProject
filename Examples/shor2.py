@@ -3,28 +3,31 @@ from qc_simulator.qc import *
 #from qc_simulator.functions import *
 from math import gcd
 
-class Shors():
+class Shors:
     """
-    only 1 regester 1 qbit number as
-    all based on thing on git
+    
     """
     def __init__(self, N):
-        self.cs = []
+        cs = []
         print("shor's algorithum")
         if N%2 == 0:
-            print("odd number please")
-            self.out = 2
+            cs.extend([2])
+            N = int(N/2)
+            #print("------------", cs)
+        print("input: ",N)
+        for i in range(8):
+            c = self.classical(N)
+            print(c, cs)
+            cs.extend(c)
+        cs = np.array(cs)
+        cs = cs.flatten()
+        cs = np.unique(cs)
+        cs = [c for c in cs if c!=1]
+        cs = set(cs)
+        if cs =={}:
+            print("is N a prime")
+            self.out = Shors(N)
         else:
-            print("input: ",N)
-            cs = []
-            for i in range(8):
-                c = self.classical(N)
-                print(c, cs)
-                cs.extend(c)
-            cs = np.array(cs)
-            cs = cs.flatten()
-            cs = np.unique(cs)
-            cs = [c for c in cs if c!=1]
             self.out = set(cs)
 
     def classical(self, N):
@@ -70,7 +73,7 @@ class Shors():
         QFT = self.QFT(n_qubits)
         QR = (QFT%IdentityGate(n_qubits))*QR
         states = QR.base_states
-        print(states)
+        #print(states)
         print("measureing")
         #c = self.get_p(QR)
         #print(c)
@@ -240,6 +243,6 @@ class Shors():
         M = M2*M1*M
         return M
 
-a = Shors(35)
+a = Shors(18)
 a = a.out
 print("we get: ",a)
