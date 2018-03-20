@@ -21,6 +21,9 @@ class Shors():
                 c = self.classical(N)
                 print(c, cs)
                 cs.extend(c)
+            cs = np.array(cs)
+            cs = cs.flatten()
+            cs = np.unique(cs)
             cs = [c for c in cs if c!=1]
             self.out = set(cs)
 
@@ -28,9 +31,10 @@ class Shors():
         print("classical")
         m = np.random.randint(2,N-1)
         #m = 2
-        if False: #gcd(m,N)!=1:#  
+        d = gcd(m,N)
+        if d!=1:#  
             print("easy: ")
-            return m
+            return [d]
         else:
             print("though",m," :")
             p = self.find_period(N,m)
