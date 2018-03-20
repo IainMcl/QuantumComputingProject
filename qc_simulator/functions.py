@@ -9,38 +9,6 @@ import numpy as np
 import math
 
 
-def quantumAdder(a,b):
-    """
-    Implements a quantum addition circuit using a C-Not and Toffoli Gates
-    Takes in 2 single qubit quantum registers as input
-    returns a quantum register containing the sum of the values of the 2 input registers
-
-    currently implements the circuit but fails to return the right thing
-    """
-    x0 = QuantumRegister(a.n_qubits)
-    CN = CUGate(Not(),1)
-    I = Operator(3, np.eye(3))
-    CNN = CUGate(Not(),2)
-    reg1 = a*b*x0
-    reg1 = CNN*reg1
-    I = Operator(reg1.n_qubits, np.eye(3))
-    CN = I%CN
-    reg2 = CN*reg1
-    k = reg2.measure()
-    #untensorfy here
-    return k
-
-def GetQuBitofValue(theta, phi):
-    """
-    Implements a setter circuit, setting the value of
-    """
-    register = QuantumRegister()
-    H = Hadamard()
-    P1 = PhaseShift(2*theta,register.n_qubits)
-    P2 = PhaseShift((np.pi*0.5)+phi,register.n_qubits)
-    result = H*P1*H*P2*register
-    return result
-
 
 def oracle_single_tag(n, tag):
     """
