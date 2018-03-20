@@ -1,5 +1,5 @@
-from qc import *
-from functions import *
+from qc_simulator.qc import *
+from qc_simulator.functions import *
 import numpy as np
 import math
 from matplotlib import pyplot as plt
@@ -63,7 +63,7 @@ def grover(oracle, k=1):
     # Normalise, measure and return results
     register.normalise()
 
-    
+
 
     measurement = input.measure()
 
