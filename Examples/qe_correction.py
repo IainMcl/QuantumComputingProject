@@ -7,9 +7,9 @@ def build_rev_c_c_not(empty_qw_control=0, empty_qw_target=0):
     """
     Builds a reverse toffoli gate, given the number of I operators between the second control and the target qubit from the
     first control. By default these distances are set to 0 and 0 respectively.
-    :param empty_qw_control:
-    :param empty_qw_target:
-    :return gate: <Operator> Toffoli gate
+    :param empty_qw_control: <int> number of empty quantum wires between the two control qubits
+    :param empty_qw_target: <int> number of empty quantum wires between second control and target qubits
+    :return gate: <Operator> Inverted Toffoli gate
     """
 
     # Initialise basis gates
