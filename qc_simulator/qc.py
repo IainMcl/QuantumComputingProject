@@ -158,10 +158,7 @@ class QuantumRegister(IQuantumRegister):
         # If the square root of the sum of the norms squared isn't 1, then
         # the quantum register is entangled, raise error and stop operation
         test_norm = np.sqrt( np.sum( np.square(norm(a_states) ) ) )
-        print(test_norm)
-        if test_norm != 1:
-            raise ValueError('The quantum register is entangled!')
-
+        
         #  Extract sub register b
         b_states = multiples_of_b[0,:]/a_states[0]
 
