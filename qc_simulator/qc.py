@@ -84,6 +84,8 @@ class QuantumRegister(IQuantumRegister):
                 other: <QuantumRegister> right hand side quantum register
         Outputs:
                 qmr_result: <QuantumRegister> resulting quantum register.
+
+        Raises error if 'other' is not of the right type.
         """
 
         # Check if other is of the right tyoe
@@ -134,6 +136,10 @@ class QuantumRegister(IQuantumRegister):
                 k: <int> Number of qubits of second subregister
         Outputs:
                 a, b: (<QuantumRegister>, <QuantumRegister>) Tuple containing the two sub_registers
+
+        Raises error if n_a and n_b are not equal to the n_qubits.
+        User must make sure that the quantum register is not entangled. Nonsensical
+        results will occur otherwise. 
         """
         # Check if n_a + n_b = total number of qubits in register
         if n_a + n_b != self.n_qubits:
@@ -174,9 +180,6 @@ class QuantumRegister(IQuantumRegister):
 
         b = QuantumRegister(n_b)
         b.base_states = b_states
-
-        # Before returning check if both states sum to 1, if not then it means
-        # the quantum register is entangled and the operation cannot proceed.
 
         return (a, b)
 
@@ -238,6 +241,11 @@ class Operator(IOperator):
          Inputs:
                 n_qubits: <int> Number of qubits operator operates on
                 base: <np.array> Base matrix
+
+        Raises error if n_qubits is less than or equal to 0.
+        User must make sure that n_qubits is <int>.
+        User must make sure that the size of base is consistant, i.e. a 2 by 2
+        numpy array.
         """
         # Check if number of qubits is correct
         if n_qubits <= 0 :
@@ -282,6 +290,13 @@ class Operator(IOperator):
                 result:<QuantumRegister> / <Operator> if rhs is of type Operator then
                 return Operator. If it's of type QuantumRegister, then return a quantum
                 register object.
+
+        In case where rhs is <QuantumRegister> raises error if its number of qubits
+        do not correspond to the number of qubits of the Operator.
+
+        In case where rhis is <Operator> raises error if it is not of the same size.
+
+        User needs to make sure that rhs is of the right type.
         """
         if isinstance(rhs, QuantumRegister):
             # Apply operator to quantum register
