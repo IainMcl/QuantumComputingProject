@@ -3,7 +3,6 @@ from qc_simulator.functions import *
 import numpy as np
 import math
 from matplotlib import pyplot as plt
-import copy
 
 def grover(oracle, k=1, plot = False):
     '''
@@ -42,28 +41,26 @@ def grover(oracle, k=1, plot = False):
     #n_runs = round( math.pi * math.sqrt(n_qubits/k)/4)
 
     n_runs = round( ((math.pi/4)/math.sqrt(k))*2**(n_qubits/2))
+    print(n_runs)
 
     # Add auxilary qubit to register
     register = register * aux
     if plot:
-            tempReg = copy.deepcopy(register).split(n_qubits,1)[0]
-            ax = tempReg.plot_register(False)
-            ax.set_title("Amplitude of Base States at iteration 0 of Grover's Algorithm")
+            ax = register.plot_register(False)
+            ax.set_title("Amplitude of Base States at iteration {} of Grover's Algorithm".format(0))
             ax.set_xlabel("Base State")
             ax.set_ylabel("Amplitude")
             plt.show()
-            print(str(register))
-
     for i in range(n_runs):
 
         #register.plot_register()
+
         # Apply grover iteration
         register=oracle * register
         register = W * register
         if plot:
-            tempReg = copy.deepcopy(register).split(n_qubits,1)[0]
-            ax = tempReg.plot_register(False)
-            ax.set_title("Amplitude of Base States at iteration {} of Grover's Algorithm".format(i+1))
+            ax = register.plot_register(False)
+            ax.set_title("Amplitude of Base States at iteration {} of Grover's Algorithm".format(i))
             ax.set_xlabel("Base State")
             ax.set_ylabel("Amplitude")
             plt.show()
@@ -91,19 +88,24 @@ def grover(oracle, k=1, plot = False):
 ## Main and testing###
 if __name__=='__main__':
 
-    print("Grover's algorithm demonstration")
-    print("\n")
-    
-    
-    print("Oracle_single_tag initiated with 7 qubits, targeted state #4")
-    print("\n")
-    n=7
-    oracle1=oracle_single_tag(n,4)
+    n=4
+    oracle1=oracle_single_tag(n,9)
+    #oracle2=oracle_single_tag(n,5)
+    #oracle3=oracle_single_tag(n,10)
+    #oracle4=oracle_single_tag(n,15)
+    #oracle=oracle1*oracle2*oracle3*oracle4
+    #oracle1=oracle1*oracle2
 
-    n_runs = 50
+    #reg = grover(oracle1)
+    #print(reg[0].measure())
+    #measurement=grover(oracle1, k=2)
+    #print(measurement[1])
+
+    plot=True
+    n_runs = 1
     results = np.zeros(n_runs, dtype=int)
     for i in range(n_runs):
-        measurement=grover(oracle1,k=1, plot=True)
+        measurement=grover(oracle1,k=1, plot=plot)
         results[i] = measurement[1]
 
     # Return number measured most often together with the accuracy
