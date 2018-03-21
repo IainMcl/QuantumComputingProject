@@ -25,8 +25,15 @@ This will install the package along with all its dependencies.
 * Examples uses of the code are located in _Examples_.
 * Documentation in HTML format are in _Docs_.
 
-# Contact Us
-tba
+# Contact Details 
+School of Physics and Astronomy
+University of Edinburgh
+James Clerk Maxwell Building
+Peter Guthrie Tait Road
+Edinburgh
+EH9 3FD
+Tel: +44 (0) 131 651 7067
+Fax: +44 (0) 131 650 5902
 
 <!-- For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
 
