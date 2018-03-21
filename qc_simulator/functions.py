@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-File containing helper functions. 
+File containing helper functions.
 """
 #!/usr/bin/env python3
 
@@ -94,47 +94,6 @@ def build_c_c_not(empty_qw_control=0, empty_qw_target=0):
        * (c_not % I_target) * (I_control % c_v_short) * (I_total % h_gate)
 
     return toffoli
-
-
-def build_rev_c_c_not(empty_qw_control=0, empty_qw_target=0):
-    """
-    Builds a reverse toffoli gate, given the number of I operators between the second control and the target qubit from the
-    first control. By default these distances are set to 0 and 0 respectively.
-    :param empty_qw_control:
-    :param empty_qw_target:
-    :return: toffoli, toffoli gate (Operator Object)
-    """
-
-    # Initialise basis gates
-    h_gate = Hadamard()
-    I = IdentityGate()
-    I_target = IdentityGate(empty_qw_target + 1)
-    I_control = IdentityGate(empty_qw_control + 1)
-    I_total = IdentityGate(empty_qw_target + empty_qw_control + 2)
-
-    v_gate = PhaseShift(np.pi / 2)
-    c_v_short = CUGate(v_gate, empty_qw=empty_qw_target)
-    c_v_long = CUGate(v_gate, empty_qw=empty_qw_target+empty_qw_control + 1)
-
-    c_not = CUGate(Not(), empty_qw=empty_qw_control)
-    v3 = v_gate * v_gate * v_gate
-    c_v3 = CUGate(v3, empty_qw=empty_qw_target)
-
-    # Build circuit
-
-    if empty_qw_control == 0:
-        gate = (h_gate % I_total) * c_v_long  * (I_target % h_gate % h_gate)\
-        * (I_target % c_not) * (I_target % h_gate % h_gate) * (c_v3 % I_control)\
-        * (I_target % h_gate %  h_gate) * (I_target % c_not)\
-        * (I_target % h_gate %  h_gate) * (c_v_short % I_control) * (h_gate % I_total)
-    else:
-
-        gate = (h_gate % I_total) * c_v_long  * (I_target % h_gate % IdentityGate(empty_qw_control) % h_gate)\
-        * (I_target % c_not) * (I_target % h_gate % IdentityGate(empty_qw_control) % h_gate) * (c_v3 % I_control)\
-        * (I_target % h_gate % IdentityGate(empty_qw_control) % h_gate) * (I_target % c_not)\
-        * (I_target % h_gate % IdentityGate(empty_qw_control) % h_gate) * (c_v_short % I_control) * (h_gate % I_total)
-
-    return gate
 
 
 def build_rev_c_c_not(empty_qw_control=0, empty_qw_target=0):
