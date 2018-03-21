@@ -18,10 +18,18 @@ from qc_simulator.FunctionalOracle import *
 
 
 class TSPOracle():
+    """
+    This class implements a series of functions used to create a 
+    functional oracle object for the Travelling saleman problem
+    It stores permutations of different locations
+
+    """
     def __init__(self, locations,threshold):
+       
         """
-        Oracle for the Travelling salesman problem. overrides __getitem__ to return 0 or 1 if the distance if the route mapped to the key is smaller than the thershold value
-        Maps each state to a permutation of the routes
+        Class constructor
+        :param locations: numpy array of 2-d coordinates
+        :param threshold: Threshold distance
         """
         self.locations = locations[1:locations.size-1]#list of all stops excluding the first one
 
@@ -34,6 +42,8 @@ class TSPOracle():
     def calcDistance(self, locationArray):
         """
         calculates the distance needed to complete a route specified by the input array
+        :params locationArray: Array of locations in the order of the route you want to calculate the distance for
+        :return self.dist: The Euclidian distance of the route specified
         """
         self.dist = distance.euclidean(self.start,locationArray[0]) + distance.euclidean(self.start,locationArray[-1])#distance from start to first stop and last to first stop
 
@@ -44,7 +54,9 @@ class TSPOracle():
 
     def __getitem__(self,key):
         """
-        returns 0 or 1 if the specific permuation is under the distance threshold
+        Overrides the getitem method to act as the function f(x)
+        :params key: key specifying the permutation 
+        :return:  0 or 1 if the specific permuation is under the distance threshold
         """
         if key >= len(self.locationPerms):
             return 0
@@ -58,8 +70,10 @@ class TSPOracle():
             return 0
 
     def plot_locations(self, key):
+               
         """
         plots the specified route permutation
+        :params key: specifies the permuation to be plotted
         """
         try:
             locs = np.swapaxes(self.locationPerms[key],0,1)
