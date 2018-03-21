@@ -1,6 +1,5 @@
 from qc_simulator.functions import *
 from qc_simulator.qc import *
-from functions import *
 import math
 import numpy as np
 
@@ -150,22 +149,28 @@ if __name__ == '__main__':
     # Prepare 2 qubit ancilla register
     reg3=QuantumRegister(2)
 
-    print("3 Qubit code:")
+    print("3 Qubit code and 9 qubit code Quantum Error Correction demonstration")
+    print("\n")
 
+
+    print("3 Qubit code:")
+    print("\n")
+    
+    
+    print("Single qubit:")
+    print(reg1)
+    print("\n")
     # Combine register 1 with encoding register
     reg=reg1*reg2
 
     # Apply encoding gate
     reg= encode_3_gate*reg
-
-    # Combine register with ancilla gates
-    reg=reg*reg3
-
+    
     # Print register
     print("Encoded register:")
     print(reg)
     print("\n")
-
+    
     # Induce a qubit phase flip and print register
     n = Not()
     reg = (n % IdentityGate(1) % IdentityGate(1)) * reg
@@ -173,6 +178,9 @@ if __name__ == '__main__':
     print("Qubit phase flip error induced")
     print(reg)
     print("\n")
+
+    # Combine register with ancilla register
+    reg=reg*reg3
 
 
     # Apply ancilla gate
@@ -188,15 +196,21 @@ if __name__ == '__main__':
 
     print("Corrected gate")
     print(reg)
+    print("\n")
 
     print("9 Qubit code:")
-
+    print("\n")
     # Prepare 1 qubit register
     reg1 = QuantumRegister(1)
     # Prepare 8 qubit encoding register
     reg2 = QuantumRegister(8)
     # Prepare 2 qubit ancilla register
     reg3=QuantumRegister(2)
+
+    
+    print("Single qubit:")
+    print(reg1)
+    print("\n")
 
 
     # Combine register 1 with encoding register
@@ -207,7 +221,6 @@ if __name__ == '__main__':
 
     # Combine register with ancilla gates
     reg=reg*reg3
-
 
 
     # Print register
