@@ -12,10 +12,9 @@ class FunctionalOracle(Operator):
 
     def __mul__(self,rhs):
         """
-        if False == True: #not isinstance(rhs, QuantumRegister):
-            raise TypeError("Cannont Multiply a functional operator by {}".format(type(rhs)))
-        else:
+        Overrides the multiplication method to define a functional multiplication without a matrix
         """
+        
         output = np.zeros(rhs.base_states.size,dtype=complex)
         for i in range(rhs.base_states.size):
             if self.function[i]==1:

@@ -79,7 +79,6 @@ class TSPOracle():
         """
         try:
             locs = np.swapaxes(self.locationPerms[key],0,1)
-            print(locs)
         except IndexError:
             print("Undefined route, try running Grover again :(")
             return 0
@@ -95,11 +94,11 @@ if __name__=='__main__':
     #oracle = Oracle(x=3,n_qubits = 10)
     #k = grover_search(oracle)
     #print(k)
-    locations = np.array([[2,3],[3,6],[9,2],[3,2],[5,4]])
-    #locations = 10*np.random.rand(6,2)
+    
+    locations = 10*np.random.rand(4,2)
 
 
-    d=18#threshold
+    d=20# set the threshold value
     o = TSPOracle(locations, d)#create oracle object
     dists = np.zeros(len(o.locationPerms))#run it classically
     for i in range(len(o.locationPerms)):
@@ -107,20 +106,18 @@ if __name__=='__main__':
         dists[i] = o.dist
 
     k = (dists < d).sum()#get number of tagged states/number of distances below the threshold classically
-    #print(min(dists))
-    #o = OracleFunction(4)
-
-    #o.plot_locations(np.argmin(dists))
+    
     Of = FunctionalOracle(o, o.size)#creates the functional oracle
     outputs = np.zeros(100,dtype=int)
     for i in range(10):#runs grover for the oracle 10 times
 
         outputs[i] = grover(Of,k=k)[1]
-        print(outputs[i])
-        print
-    i = np.argmax(np.bincount(outputs))#best result
+        
+    #get grovers best guess and plots results  
+    i = np.argmax(np.bincount(outputs))
     o.plot_locations(i)
     o.plot_locations(np.argmin(dists))
+    o.calcDistance(o.locationPerms[i])
     print(np.bincount(outputs))
     print("\n")
     print("N_qubits = {}".format(o.size))
@@ -128,5 +125,5 @@ if __name__=='__main__':
     print("Correct base state: {}".format(np.argmin(dists)))
     print("Grover base state: {}".format(i))
     print("Average distance: {}".format(np.average(dists)))
-    print("Grover minimum distance: {}".format(o.calcDistance(o.locationPerms[i])))
+    print("Grover minimum distance: {}".format(o.dist))
     print("Classical minimum distance: {} ".format(min(dists)))
