@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Created on Wed Mar  7 14:49:33 2018
-
-@author: Lewis
+Demonstation of the implementation of an Oracle using functions rather than
+matrices.
 """
 from qc import *
 import math
