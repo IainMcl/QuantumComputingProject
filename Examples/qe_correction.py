@@ -6,7 +6,8 @@ import numpy as np
 def build_3qubit_encode_gate():
     """
     Encodes the second and third qubit for 3qubit quantum error correction
-    :return gate: <Operator>
+    Outputs:
+            gate: <Operator>
     """
     I=IdentityGate()
     c_not=CUGate(Not())
@@ -18,7 +19,8 @@ def build_3qubit_encode_gate():
 def build_3qubit_ancilla_gate():
     """
     Updates the two ancilla gates for 3qubit quantum error correction
-    :return gate: <Operator> object
+    Outputs:
+            <Operator> object
     """
     I=IdentityGate()
     c_not_1i=CUGate(Not(), empty_qw=1)
@@ -33,7 +35,8 @@ def build_3qubit_correction_gate():
     """
     Corrects a single qubit bit error in 3 qubit quantum error correction
     using information from ancilla qubits.
-    :return gate: <Operator> object
+    Outputs:
+            gate: <Operator> object
     """
 
     rev_c_c_not = build_rev_c_c_not()
@@ -50,7 +53,8 @@ def build_3qubit_correction_gate():
 def build_9qubit_encode_gate():
     """
     Encodes the second to eighth qubit for 9qubit quantum error correction
-    :return gate: <Operator> object
+    Outputs:
+            gate: <Operator> object
     """
     c_not_2i=CUGate(Not(), empty_qw=2)
     c_not_5i=CUGate(Not(), empty_qw=5)
@@ -69,7 +73,8 @@ def build_9qubit_encode_gate():
 def build_9qubit_ancilla_gate():
     """
     updates the two ancilla gates for 9qubit quantum error correction.
-    :return gate: <Operator> object
+    Outputs:
+            gate: <Operator> object
     """
 
     h_gate =  Hadamard(9)
@@ -100,7 +105,8 @@ def build_9qubit_correction_gate():
     """
     Corrects a single qubit flip error in 9qubit quantum error correction
     using information from ancilla qubits.
-    :return gate: <Operator> object
+    Outputs:
+            gate: <Operator> object
     """
 
     I = IdentityGate()
@@ -155,8 +161,8 @@ if __name__ == '__main__':
 
     print("3 Qubit code:")
     print("\n")
-    
-    
+
+
     print("Single qubit:")
     print(reg1)
     print("\n")
@@ -165,12 +171,12 @@ if __name__ == '__main__':
 
     # Apply encoding gate
     reg= encode_3_gate*reg
-    
+
     # Print register
     print("Encoded register:")
     print(reg)
     print("\n")
-    
+
     # Induce a qubit phase flip and print register
     n = Not()
     reg = (n % IdentityGate(1) % IdentityGate(1)) * reg
@@ -207,7 +213,7 @@ if __name__ == '__main__':
     # Prepare 2 qubit ancilla register
     reg3=QuantumRegister(2)
 
-    
+
     print("Single qubit:")
     print(reg1)
     print("\n")
