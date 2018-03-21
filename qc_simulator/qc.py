@@ -211,16 +211,13 @@ class QuantumRegister(IQuantumRegister):
             plt.show()
         return ax
 
-    def plot_bloch(self, is3D=False):
+    def plot_bloch(self):
         """
         Creates a bloch sphere of the quantum register.
-        Inputs:
-                is3D: lewis has to add comments for this
         """
-        if is3D:
-            b = Bloch3d()
-        else:
-            b = Bloch()
+        
+        
+        b = Bloch()
         objs = []
         for i in range(self.n_qubits):
             obj = Qobj(self.base_states[2*i:2*i+2])
