@@ -1,8 +1,16 @@
+"""
+University of Edinburgh, Schoo of Physics and Astronomy
+Quantum Computing Project
+
+Shor's algorithm, implemented as a class.
+"""
+
+
 import numpy as np
 from qc_simulator.qc import *
 from math import gcd
 
-class Shors:
+class Shors(Object):
     """
     shors factoring class returns set of factors
     """
@@ -20,6 +28,7 @@ class Shors:
         if N%2 == 0:
             cs.extend([2])
             N = int(N/2)
+            #print("------------", cs)
         print("input: ",N)
         for i in range(tries):
             c = self.classical(N)
@@ -41,10 +50,6 @@ class Shors:
     def classical(self, N):
         """
         clasical component of the algorithum
-        Inputs:
-                N: <int> Number to be factorised.
-        Outputs:
-                <list> Factors of N or [0] if N is prime.
         """
         if self.check_prime(N):
             print("classical")
@@ -57,6 +62,9 @@ class Shors:
             else:
                 print("Quantum computing required",m," :")
                 p = self.find_period(N,m)
+                #print("period(p): ",p)
+                #print("m**p: ",m**p)
+                #print("m**(p/2): ",m**(p/2))
                 return self.period_check(N,m,p)
         else:
             print("its a prime")
@@ -64,12 +72,8 @@ class Shors:
 
     def check_prime(self,N):
         """
-        Check if N is a prime or not
-        return true if not prime.
-        Inputs:
-                N: <int> Number being factorised.
-        Outputs:
-                <bool> True if N prime, false if N not prime
+        check if N is a prime or not
+        return true if not prime
         """
         for i in range(2, N):
             if N%i == 0:
@@ -78,23 +82,17 @@ class Shors:
 
     def period_check(self, N, m, p):
         """
-        Checks to see if the period is aceptable
-        returns factor if acceptable.
-        Inputs:
-                N: <int> Number being factorised.
-                m: <int> Randomised integer.
-                p: <int> Period of fmap function
-        Outputs:
-                c: <list> List containing greatest common divisors of m*
+        checks to see if the period is aceptable
+        returns factor if acceptable
         """
         if p%2 != 0:
-            print("period should be even")
+            print("oops-------1")
             return self.classical(N)
         elif (m**(p/2))%N == 1%N:
-            print("incorrect m**(p/2)")
+            print("oops-------2")
             return self.classical(N)
         elif (m**(p/2))%N == -1%N:
-            print("incorrect m**(p/2)")
+            print("oops------3")
             return self.classical(N)
         else:
             c = [gcd(N, int(m**(p/2)-1)), gcd(N, int(m**(p/2)+1))]
@@ -103,18 +101,13 @@ class Shors:
 
     def find_period(self, N, m):
         """
-        Finds period in for N the number to be factored
+        finds period in for N the number to be factored
         and m the base of the powers, f(x) = m**x mod N
-        Inputs:
-                N: <int> Number being factorised
-                m: <int> Randomised integer
-        Outputs:
-                c: <int> Periof of fmap
         """
         n_qubits = len(format(int((N+1)*self.accuracy),'b'))
         if n_qubits%2!=0:
             n_qubits = n_qubits+1
-        print("Find period with ", n_qubits, " qubits")
+        print("find period with ", n_qubits, " qubits")
         QR1 = QuantumRegister(n_qubits)
         QR1 = Hadamard(n_qubits)*QR1
         QR2 = QuantumRegister()
@@ -122,22 +115,32 @@ class Shors:
         QFT = self.QFT(n_qubits)
         QR = (QFT%IdentityGate(n_qubits))*QR
         states = QR.base_states
-
-        print("Measureing...")
+        #print(states)
+        print("measureing")
+        #c = self.get_p(QR)
+        #print(c)
+        #c = gcd(QR.measure(), QR.measure())
+        #c = gcd(self.mes(QR), self.mes(QR))
         c = self.mes(QR)
-        print("Measured.")
+        print("measured")
         #print(c)
         return c
 
+    def get_p(self,QR):
+        """
+        not curently in use
+        for taking repeted measurments
+        don't this its a good idea
+        """
+        c = self.mes(QR)
+        for i in range(2):
+            c = gcd(c, self.mes(QR))
+        return c
 
     def mes(self,QR):
         """
         takes and returns measurment of quantum register QR
         only reurns when the measurment QR is not 1
-        Inputs:
-                QR: <QuantumRegister> Input quantum register
-        Outputs:
-                c: <int> Measured state
         """
         c=1
         while c == 1:
@@ -148,16 +151,10 @@ class Shors:
 
     def QFT(self, n):
         """
-        Quantum fourier tansform
-        Inputs:
-                n: <int> Number of qubits
-        Outputs:
-                M: <Operator> QFT circuit for n qubits.
+        quantum fourier tansform
+        returns quantum fourier tansform matrix for n qubits
         """
-
-        print("QFT cicrcuit calculation")
-
-
+        print("QFT")
         H = Hadamard()
         M = H%IdentityGate(n-1)
         for i in range(n-2):
@@ -167,9 +164,14 @@ class Shors:
         for j in range(n-2):
             M = (IdentityGate(j+1)%H%IdentityGate(n-j-2))*M
             for i in range(n-3-j):
+                #print(i)
                 phi = 2*np.pi/np.power(2,i+2)
+                #print(M.matrix.shape)
                 M1 = (IdentityGate(j+1)%(CUGate(PhaseShift(phi),1,i))%IdentityGate(n-j-i-3))
+                #print(j+1,i,n-j-i-3)
+                #print(M1.matrix.shape)
                 M = M1*M
+            #print("pass")
             phi = 2*np.pi/np.power(2,n-j)
             M1 = (IdentityGate(j+1)%CUGate(PhaseShift(phi),1,n-3-j))
             M = M1*M
@@ -180,21 +182,12 @@ class Shors:
 
     def fmapping_lazy(self, QR1, QR2, N, m, n_qubits):
         """
-        Lazy way to map|x> and |o> onto |x>|f(x)>
+        maps|x> and |o> onto |x>|f(x)>
         f(x) = m^x mod N
-
-        Inputs:
-                QR1: <QuantumRegister> Quantum register 1
-                QR2: <QuantumRegister> Quantum register 2
-                N:
-                m:
-                n_qubits: <int> Number of qubits of QR1
-        Outputs:
-                QR: <QuantumRegister> Quantum register representing
-                    |x>|f(x)>
+        returns |x>|f(x)>
         """
         print("lazy mapping")
-
+        #n_qubits = QR1.n_qubits
         n_states = 2**n_qubits
         QR2 = QuantumRegister(n_qubits)
         states = np.zeros(n_states)

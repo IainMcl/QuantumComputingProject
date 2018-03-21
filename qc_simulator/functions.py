@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-File containing helper functions.
+University of Edinburgh, School of Physics and Astronomy
+Quantum Comuting Project
+
+Helper functions containing allowing for the construction of various types
+of quantum circuits.
 """
 #!/usr/bin/env python3
 

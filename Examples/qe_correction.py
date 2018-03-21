@@ -1,3 +1,10 @@
+"""
+University of Edinburgh: School of Physics and Astronomy
+Quantum Computing Project
+
+Functions implementing quantum error correction.
+"""
+
 from qc_simulator.functions import *
 from qc_simulator.qc import *
 import math

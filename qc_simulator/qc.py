@@ -1,13 +1,12 @@
 """
-07/02/2018
-Andreas Malekos, Gabriel Hoogervorst, John Harbottle, Lewis Lappin, Huw Haigh
-School of Physics and Astronomy, The University of Edinburgh
+University of Edinbugh, School of Physics and Astronomy
+Quantum Computing Project
 
-Classes for quantum register and operators. Implement the abstract classes
-defined in qc_abastract. The Quantum register is implemented as a 1D numpy array
-and the matrix gates as sparse matrices, using the Compressed Sparse Column
-matrix format (csc).
+Quantum Computer Simulator: Implementations of quantum register and quantum
+logic gate.
 
+Authors: Andreas Malekos, Gabriel Hoogervorst, Lewis Lappin, John Harbottle,
+Wesley Shao Zhonghua, Huw Haigh
 """
 
 import numpy as np

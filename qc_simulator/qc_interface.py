@@ -1,14 +1,12 @@
 """
-Abstract classes for quantum register and quantum operator. The compulsory
-methods to implement are restricted to:
-    QuantumRegisterAbstract:
-        -Measurement method
-        -Override of the multiplication operator so that interaction between
-        quantum registers is defined
-        -Print Method
-    OperatorAbstract
-        -Override of multiplication operator so that interaction between
-        operators as well as operators and quantum registers is defined.
+University of Edinbugh, School of Physics and Astronomy
+Quantum Computing Project
+
+Quantum Computer Simulator: Definition of interfaces for quantum register
+and quantum logic gate 
+
+Authors: Andreas Malekos, Gabriel Hoogervorst, Lewis Lappin, John Harbottle,
+Wesley Shao Zhonghua, Huw Haigh
 """
 
 from abc import ABC, abstractclassmethod

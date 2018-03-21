@@ -1,3 +1,10 @@
+"""
+University of Edinburgh, Shool of Physics and Astronomy
+Quantum Computing Project
+
+Implementation of Grover's algoritm. 
+"""
+
 from qc_simulator.qc import *
 from qc_simulator.functions import *
 import numpy as np
