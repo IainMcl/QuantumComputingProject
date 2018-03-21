@@ -13,23 +13,23 @@ from sympy.utilities.iterables import multiset_permutations
 from itertools import permutations
 import math
 import matplotlib.pyplot as plt
-from qc_simulator.grover import *
+from grover import *
 from qc_simulator.FunctionalOracle import *
 
 
 class TSPOracle():
     """
-    This class implements a series of functions used to create a 
+    This class implements a series of functions used to create a
     functional oracle object for the Travelling saleman problem
-    It stores permutations of different locations
-
+    It stores permutations of different locations.
     """
     def __init__(self, locations,threshold):
-       
+
         """
         Class constructor
-        :param locations: numpy array of 2-d coordinates
-        :param threshold: Threshold distance
+        Inputs:
+                locations: <np.array> 2-d coordinates
+                threshold: <float> Threshold distance
         """
         self.locations = locations[1:locations.size-1]#list of all stops excluding the first one
 
@@ -38,42 +38,44 @@ class TSPOracle():
         self.locationPerms += self.locationPerms[:2**math.ceil(math.log(len(self.locationPerms),2))-len(self.locationPerms)]
         self.threshold = threshold#threshold distance
         self.size = int(math.log(len(self.locationPerms),2)) #size of oracle
+        self.dist = 0
 
     def calcDistance(self, locationArray):
         """
-        calculates the distance needed to complete a route specified by the input array
-        :params locationArray: Array of locations in the order of the route you want to calculate the distance for
-        :return self.dist: The Euclidian distance of the route specified
+        Calculates the distance needed to complete a route specified by the input array
+        Inputs:
+                locationArray: <list> Array of locations in the order of the route you want to calculate the distance for
         """
         self.dist = distance.euclidean(self.start,locationArray[0]) + distance.euclidean(self.start,locationArray[-1])#distance from start to first stop and last to first stop
 
         for i in range(len(locationArray)-1):#all other distances
             self.dist += distance.euclidean(locationArray[i],locationArray[i+1])
 
-        return self.dist
 
     def __getitem__(self,key):
         """
         Overrides the getitem method to act as the function f(x)
-        :params key: key specifying the permutation 
-        :return:  0 or 1 if the specific permuation is under the distance threshold
+        Inputs:
+                key:<int> Key specifying the permutation
+        Outputs:
+                <int> 0 or 1 if the specific permuation is under the distance threshold
         """
         if key >= len(self.locationPerms):
             return 0
-        dist = self.calcDistance(self.locationPerms[key])
 
+        self.calcDistance(self.locationPerms[key])
 
-
-        if dist < self.threshold:
+        if self.dist < self.threshold:
             return 1
         else:
             return 0
 
     def plot_locations(self, key):
-               
+
         """
-        plots the specified route permutation
-        :params key: specifies the permuation to be plotted
+        Plots the specified route permutation
+        Inputs:
+                key: <int> Specifies the permuation to be plotted
         """
         try:
             locs = np.swapaxes(self.locationPerms[key],0,1)
